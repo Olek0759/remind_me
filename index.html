@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pl"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Remind me</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1F6FEB">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#F3F8FF;--card:#fff;--ink:#0B2A5B;--mute:#5B7399;--blue:#1F6FEB;--sky:#DCEBFF;--line:#C9DDFB;--ok:#1B8F5A}
+@media(prefers-color-scheme:dark){:root{--bg:#07142B;--card:#0E2347;--ink:#E6F0FF;--mute:#8FA9D6;--blue:#4C93FF;--sky:#16305E;--line:#1E3A6B;--ok:#4FD39A}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Segoe UI",system-ui,sans-serif;padding:max(16px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom))}
+main{max-width:520px;margin:0 auto}
+header{background:var(--blue);color:#fff;border-radius:20px;padding:22px 20px;margin-bottom:16px}
+h1{margin:0;font-size:28px;letter-spacing:-.5px}
+header p{margin:4px 0 0;opacity:.85;font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:16px}
+label{display:block;font-size:13px;color:var(--mute);margin:0 0 4px}
+input{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
+input:focus{outline:2px solid var(--blue);outline-offset:1px}
+button{font:inherit;font-weight:600;border:0;border-radius:12px;padding:13px 16px;cursor:pointer}
+.main{width:100%;background:var(--blue);color:#fff}
+.ghost{background:var(--sky);color:var(--blue)}
+h2{font-size:15px;margin:20px 0 8px;color:var(--mute);font-weight:600}
+.item{display:flex;gap:12px;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px}
+.item b{display:block;word-break:break-word}
+.item small{color:var(--mute)}
+.item.due{border-color:var(--blue);background:var(--sky)}
+.item.done b{text-decoration:line-through;color:var(--mute)}
+.item.done small{color:var(--ok)}
+.empty{color:var(--mute);text-align:center;padding:20px 0}
+.banner{background:var(--sky);border-radius:14px;padding:14px;margin-bottom:16px;font-size:14px}
+.banner button{margin-top:10px}
+.hint{font-size:13px;color:var(--mute)}
+</style></head><body><main>
+<header><h1>Remind me</h1><p>Przypomnienie znika dopiero po kliknięciu „Zrobione”.</p></header>
+<div id="perm"></div>
+<div class="card">
+  <label for="t">Co ci przypomnieć?</label>
+  <input id="t" maxlength="120" placeholder="np. Wziąć tabletki">
+  <label for="d">Kiedy?</label>
+  <input id="d" type="datetime-local">
+  <button class="main" id="add">Dodaj przypomnienie</button>
+</div>
+<div id="list"></div>
+<p class="hint">Na iPhonie: Udostępnij → Do ekranu początkowego, potem otwórz aplikację stamtąd.</p>
+</main>
+<script>
+const ST='kv',$=s=>document.querySelector(s);
+const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('remindme',1);r.onupgradeneeded=()=>r.result.createObjectStore(ST);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+async function load(){const d=await idb();return new Promise(res=>{const q=d.transaction(ST).objectStore(ST).get('list');q.onsuccess=()=>res(q.result||[]);q.onerror=()=>res([])})}
+async function save(l){const d=await idb();return new Promise(res=>{const t=d.transaction(ST,'readwrite');t.objectStore(ST).put(l,'list');t.oncomplete=res})}
+const fmt=t=>new Date(t).toLocaleString('pl-PL',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function setDefault(){const n=new Date(Date.now()+5*60000);n.setSeconds(0);n.setMinutes(n.getMinutes()-n.getTimezoneOffset());$('#d').value=n.toISOString().slice(0,16)}
+function perm(){
+  if(!('Notification' in window)){$('#perm').innerHTML='<div class="banner">Ta przeglądarka nie obsługuje powiadomień. Na iPhonie dodaj aplikację do ekranu początkowego.</div>';return}
+  if(Notification.permission==='granted'){$('#perm').innerHTML='';return}
+  $('#perm').innerHTML='<div class="banner">Aby dostawać przypomnienia, włącz powiadomienia.<br><button class="main" id="allow">Włącz powiadomienia</button></div>';
+  $('#allow').onclick=async()=>{await Notification.requestPermission();perm()};
+}
+async function render(){
+  const l=(await load()).sort((a,b)=>a.at-b.at),now=Date.now();
+  const act=l.filter(r=>!r.done),dn=l.filter(r=>r.done).reverse();
+  let h='<h2>Aktywne</h2>';
+  h+=act.length?act.map(r=>{const due=r.at<=now;return `<div class="item ${due?'due':''}"><div><b>${esc(r.text)}</b><small>${due?'Czeka na „Zrobione” w powiadomieniu':fmt(r.at)}</small></div>${due?'':`<button class="ghost" data-del="${r.id}">Usuń</button>`}</div>`}).join(''):'<div class="empty">Brak przypomnień. Dodaj pierwsze powyżej.</div>';
+  if(dn.length){h+='<h2>Zrobione</h2>'+dn.slice(0,10).map(r=>`<div class="item done"><div><b>${esc(r.text)}</b><small>Zrobione ${fmt(r.doneAt)}</small></div></div>`).join('')+'<button class="ghost" id="clr" style="width:100%">Wyczyść historię</button>'}
+  $('#list').innerHTML=h;
+  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{await save((await load()).filter(r=>r.id!==b.dataset.del));render()});
+  const c=$('#clr');if(c)c.onclick=async()=>{await save((await load()).filter(r=>!r.done));render()};
+}
+const tick=()=>{if(navigator.serviceWorker.controller)navigator.serviceWorker.controller.postMessage({type:'check'});render()};
+$('#add').onclick=async()=>{
+  const text=$('#t').value.trim(),at=new Date($('#d').value).getTime();
+  if(!text||isNaN(at)){alert('Wpisz treść i wybierz godzinę.');return}
+  if('Notification' in window&&Notification.permission==='default')await Notification.requestPermission();
+  const l=await load();l.push({id:crypto.randomUUID(),text,at,done:false});await save(l);
+  $('#t').value='';setDefault();perm();render();tick();
+};
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(async r=>{await navigator.serviceWorker.ready;try{await r.periodicSync.register('check',{minInterval:60000})}catch(e){}});
+  navigator.serviceWorker.addEventListener('message',render);
+}
+setDefault();perm();render();setInterval(tick,5000);
+document.addEventListener('visibilitychange',tick);
+</script></body></html>
