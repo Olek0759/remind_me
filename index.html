@@ -166,7 +166,7 @@ async function render(){
   $('#list').innerHTML=h;
   document.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{await save((await load()).filter(r=>r.id!==b.dataset.del));render()});
   document.querySelectorAll('[data-done]').forEach(b=>b.onclick=async()=>{const id=b.dataset.done,l=await load(),r=l.find(x=>x.id===id);if(r){r.done=true;r.doneAt=Date.now();await save(l)}
-    try{const reg=await navigator.serviceWorker.getRegistration();if(reg)(await reg.getNotifications({tag:id})).forEach(n=>n.close())}catch(e){}render()});
+    try{const reg=await navigator.serviceWorker.getRegistration();if(reg)(await reg.getNotifications()).filter(n=>n.data&&n.data.id===id).forEach(n=>n.close())}catch(e){}render()});
   const c=$('#clr');if(c)c.onclick=async()=>{await save((await load()).filter(r=>!r.done));render()};
 }
 const tick=()=>{if(navigator.serviceWorker&&navigator.serviceWorker.controller)navigator.serviceWorker.controller.postMessage({type:'check'});render()};
