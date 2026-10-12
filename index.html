@@ -123,6 +123,10 @@ html{scroll-behavior:smooth}
 .u-bar{position:absolute;left:0;bottom:0;width:100%;height:4px;background:var(--bright);transform-origin:left center}
 @keyframes drain{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 :focus-visible{outline:2px solid var(--bright);outline-offset:2px}
+.ft{text-align:center;margin:34px 0 0;font-size:11px}
+.ft button{font:inherit;color:var(--mute);opacity:.35;background:none;border:0;padding:10px 12px;cursor:pointer}
+.ft button:active{opacity:.8}
+.ft span{color:var(--mute);opacity:.25}
 
 /* płynne panele (Jednorazowo / Powtarzaj) */
 .pnl{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows .35s ease,opacity .3s ease,visibility 0s}
@@ -201,6 +205,7 @@ html{scroll-behavior:smooth}
 </section>
 
 <div id="list"></div>
+<p class="ft"><button type="button" id="bkp">kopia</button><span>·</span><button type="button" id="rst">wczytaj</button><input type="file" id="rf" accept=".json,application/json" hidden></p>
 </main>
 <div class="toast" id="toast"></div>
 <div class="undo" id="undo" role="status" aria-live="polite"><div class="u-row"><span>Usunięto przypomnienie</span><button type="button" id="undoBtn">Cofnij</button></div><i class="u-bar" id="undoBar"></i></div>
@@ -382,6 +387,22 @@ if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').then(async r=>{await navigator.serviceWorker.ready;try{await r.periodicSync.register('check',{minInterval:60000})}catch(e){}});
   navigator.serviceWorker.addEventListener('message',render);
 }
+// --- kopia zapasowa (ręczna) ---
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+$('#bkp').onclick=async()=>{
+  const l=await load(),name='remind-me-kopia.json',
+    file=new File([JSON.stringify({app:'remindme',v:1,list:l})],name,{type:'application/json'});
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});return}}catch(e){if(e&&e.name==='AbortError')return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('Zapisano kopię')};
+$('#rst').onclick=()=>$('#rf').click();
+$('#rf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{const d=JSON.parse(await f.text()),inc=Array.isArray(d)?d:d.list;
+    if(!Array.isArray(inc))throw 0;
+    const l=await load(),ids=new Set(l.map(r=>r.id));let n=0;
+    inc.forEach(r=>{if(r&&r.id&&r.text&&r.at&&!ids.has(r.id)){l.push(r);n++}});
+    await save(l);toast(n?`Wczytano: ${n}`:'Nic nowego do wczytania');render();tick()}
+  catch(x){toast('To nie jest plik kopii')}};
 $('#date').value=dstr(new Date());chips();perm();greet();render();setInterval(tick,5000);
 document.addEventListener('visibilitychange',tick);
 (()=>{const sp=$('#splash'),t0=performance.now();
