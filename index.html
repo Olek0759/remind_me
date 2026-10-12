@@ -13,8 +13,8 @@
 :root{--bg:#EEF4FF;--card:#fff;--ink:#0A2150;--mute:#5F78A3;--blue:#1448B8;--bright:#2F7BFF;--sky:#DCE9FF;--line:#D3E2FC;--ok:#138A57;--err:#FFD3D3}
 @media(prefers-color-scheme:dark){:root{--bg:#06122A;--card:#0D2147;--ink:#E8F1FF;--mute:#8CA6D4;--blue:#2F7BFF;--bright:#6AA2FF;--sky:#15305E;--line:#1C376A;--ok:#4FD39A}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Sora,"Segoe UI",system-ui,sans-serif;padding:max(18px,env(safe-area-inset-top)) 16px max(90px,env(safe-area-inset-bottom))}
-main{max-width:480px;margin:0 auto}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Sora,"Segoe UI",system-ui,sans-serif;padding:max(18px,env(safe-area-inset-top)) 16px max(2px,env(safe-area-inset-bottom));display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
+main{flex:1 0 auto;width:100%;max-width:480px;margin:0 auto;padding-bottom:60px}
 .top{display:flex;align-items:center;gap:10px;margin:4px 4px 18px}
 .logo{width:38px;height:38px;border-radius:12px;background:var(--blue);display:grid;place-items:center}
 .top h1{font-size:22px;margin:0;letter-spacing:-.4px}
@@ -123,7 +123,7 @@ html{scroll-behavior:smooth}
 .u-bar{position:absolute;left:0;bottom:0;width:100%;height:4px;background:var(--bright);transform-origin:left center}
 @keyframes drain{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 :focus-visible{outline:2px solid var(--bright);outline-offset:2px}
-.ft{text-align:center;margin:34px 0 0;font-size:11px}
+.ft{margin:0;text-align:center;font-size:11px}
 .ft button{font:inherit;color:var(--mute);opacity:.35;background:none;border:0;padding:10px 12px;cursor:pointer}
 .ft button:active{opacity:.8}
 .ft span{color:var(--mute);opacity:.25}
@@ -205,8 +205,8 @@ html{scroll-behavior:smooth}
 </section>
 
 <div id="list"></div>
-<p class="ft"><button type="button" id="bkp">kopia</button><span>·</span><button type="button" id="rst">wczytaj</button><input type="file" id="rf" accept=".json,application/json" hidden></p>
 </main>
+<p class="ft"><button type="button" id="bkp">kopia</button><span>·</span><button type="button" id="rst">wczytaj</button><input type="file" id="rf" accept=".txt,.json,text/plain,application/json" hidden></p>
 <div class="toast" id="toast"></div>
 <div class="undo" id="undo" role="status" aria-live="polite"><div class="u-row"><span>Usunięto przypomnienie</span><button type="button" id="undoBtn">Cofnij</button></div><i class="u-bar" id="undoBar"></i></div>
 <script>
@@ -349,7 +349,7 @@ function leave(el){return new Promise(res=>{if(!el)return res();leaving=true;
   setTimeout(()=>{leaving=false;res()},330)})}
 async function render(){
   if(leaving)return;
-  const l=(await load()).sort((a,b)=>a.at-b.at),now=Date.now();
+  const l=(await load()).sort((a,b)=>a.at-b.at),now=Date.now();bkList=l;
   const act=l.filter(r=>!r.done),dn=l.filter(r=>r.done).sort((a,b)=>b.doneAt-a.doneAt);
   let h='<h2>Zaplanowane</h2>';
   h+=act.length?act.map(r=>{const due=r.at<=now,d=new Date(r.at),ph=now%2000;
@@ -389,10 +389,13 @@ if('serviceWorker' in navigator){
 }
 // --- kopia zapasowa (ręczna) ---
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+let bkList=[];
 $('#bkp').onclick=async()=>{
-  const l=await load(),name='remind-me-kopia.json',
-    file=new File([JSON.stringify({app:'remindme',v:1,list:l})],name,{type:'application/json'});
-  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});return}}catch(e){if(e&&e.name==='AbortError')return}
+  // wszystko synchronicznie przed share(): Safari wymaga wywołania w obrębie dotknięcia
+  const name='remind-me-kopia.txt',
+    file=new File([JSON.stringify({app:'remindme',v:1,list:bkList})],name,{type:'text/plain'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file]});return}catch(e){if(e&&e.name==='AbortError')return}}
   const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=name;document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('Zapisano kopię')};
 $('#rst').onclick=()=>$('#rf').click();
