@@ -25,22 +25,22 @@ input{width:100%;font:inherit;color:var(--ink);border:0;outline:0}
 #what:focus{border-color:var(--bright)}
 .hero{background:var(--blue);color:#fff;border-radius:28px;padding:22px 18px 18px;margin-bottom:12px}
 .hero label{color:rgba(255,255,255,.7);text-align:center}
-#time{color:#fff;background:transparent;text-align:center;font-size:76px;font-weight:700;letter-spacing:-2px;line-height:1;padding:2px 0 14px;caret-color:#fff}
+#time{color:#fff;background:transparent;text-align:center;font-size:76px;font-weight:700;letter-spacing:-2px;line-height:1;padding:2px 0 4px;caret-color:#fff}
 ::placeholder{color:rgba(255,255,255,.3);opacity:1}
 #what::placeholder{color:var(--mute);opacity:.7}
-.sep{height:1px;background:rgba(255,255,255,.18);margin:0 -4px 16px}
+.sep{height:1px;background:rgba(255,255,255,.18);margin:20px -4px}
 .drow{display:flex;gap:10px;align-items:flex-end}
 .drow>div:first-child{flex:1.1}
-#date{background:rgba(255,255,255,.14);color:#fff;border-radius:14px;padding:13px 14px;font-size:18px;font-weight:600;text-align:center;border:2px solid transparent}
-#date:focus,#time:focus{border-color:rgba(255,255,255,.55)}
+#date,#pre{background:rgba(255,255,255,.14);color:#fff;border-radius:14px;padding:13px 14px;font-size:18px;font-weight:600;text-align:center;border:2px solid transparent}
+#date:focus,#pre:focus,#time:focus{border-color:rgba(255,255,255,.55)}
 #time:focus{border-color:transparent}
-.chips{display:flex;gap:8px;flex-wrap:wrap}
-.chip{font:inherit;font-size:14px;font-weight:600;color:#fff;background:rgba(255,255,255,.14);border:0;border-radius:999px;padding:11px 16px;cursor:pointer;transition:background .15s,color .15s}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.chip{font:inherit;font-size:13.5px;font-weight:600;color:#fff;background:rgba(255,255,255,.14);border:0;border-radius:999px;padding:10px 15px;cursor:pointer;transition:background .15s,color .15s}
 .chip.on{background:#fff;color:var(--blue)}
 .chip:active{transform:scale(.97)}
 .quick{margin-top:14px}
 .quick .chip{padding:9px 14px;font-size:13px;background:transparent;border:1.5px solid rgba(255,255,255,.3)}
-.add{width:100%;margin-top:18px;font:inherit;font-size:17px;font-weight:700;color:var(--blue);background:#fff;border:0;border-radius:16px;padding:17px;cursor:pointer;transition:transform .1s}
+.add{width:100%;margin-top:24px;font:inherit;font-size:17px;font-weight:700;color:var(--blue);background:#fff;border:0;border-radius:16px;padding:17px;cursor:pointer;transition:transform .1s}
 .add:active{transform:scale(.98)}
 .err{min-height:20px;margin:10px 2px 0;font-size:13.5px;color:var(--err);text-align:center}
 h2{font-size:14px;margin:26px 4px 10px;color:var(--mute);font-weight:600}
@@ -82,14 +82,23 @@ h2{font-size:14px;margin:26px 4px 10px;color:var(--mute);font-weight:600}
 </div>
 
 <section class="hero">
-  <label for="time">Godzina</label>
-  <input id="time" inputmode="numeric" placeholder="--:--" autocomplete="off" aria-label="Godzina, np. 14:30">
+  <div class="sec">
+    <label for="time">Godzina</label>
+    <input id="time" inputmode="numeric" placeholder="--:--" autocomplete="off" aria-label="Godzina, np. 14:30">
+    <div class="chips"><button class="chip" data-m="15">za 15 min</button><button class="chip" data-m="60">za 1 godz.</button><button class="chip" data-m="180">za 3 godz.</button></div>
+  </div>
   <div class="sep"></div>
-  <div class="drow">
-    <div><label for="date" style="text-align:left">Data</label><input id="date" inputmode="numeric" placeholder="DD.MM.RRRR" autocomplete="off"></div>
+  <div class="sec">
+    <label for="date">Data</label>
+    <input id="date" inputmode="numeric" placeholder="DD.MM.RRRR" autocomplete="off">
     <div class="chips"><button class="chip" data-d="0">Dziś</button><button class="chip" data-d="1">Jutro</button></div>
   </div>
-  <div class="chips quick"><button class="chip" data-m="15">za 15 min</button><button class="chip" data-m="60">za 1 godz.</button><button class="chip" data-m="180">za 3 godz.</button></div>
+  <div class="sep"></div>
+  <div class="sec">
+    <label for="pre">Przypomnij wcześniej (minut przed)</label>
+    <input id="pre" inputmode="numeric" maxlength="4" placeholder="Brak" autocomplete="off">
+    <div class="chips"><button class="chip" data-p="5">5 min</button><button class="chip" data-p="15">15 min</button><button class="chip" data-p="30">30 min</button><button class="chip" data-p="60">1 godz.</button></div>
+  </div>
   <button class="add" id="add">Dodaj przypomnienie</button>
   <div class="err" id="err" role="alert"></div>
 </section>
@@ -143,9 +152,12 @@ $('#add').onclick=async()=>{
   const dt=parseDate($('#date').value.trim());if(!dt)return err('Wpisz datę, np. 1210 albo 12.10.2026.');
   dt.setHours(tm[0],tm[1],0,0);const at=dt.getTime();
   if(at<=Date.now())return err('Ta godzina już minęła. Wybierz późniejszą.');
+  const pre=parseInt($('#pre').value||'0',10)||0;
+  if(pre>10080)return err('Uprzedzenie może być maksymalnie 10080 minut (tydzień) wcześniej.');
+  if(pre>0&&at-pre*60000<=Date.now())return err('Przypomnienie uprzedzające wypadłoby w przeszłości. Zmniejsz liczbę minut.');
   if('Notification' in window&&Notification.permission==='default')await Notification.requestPermission();
-  const l=await load();l.push({id:crypto.randomUUID(),text,at,done:false});await save(l);
-  err('');$('#what').value='';$('#time').value='';$('#date').value=dstr(new Date());chips();
+  const l=await load();l.push({id:crypto.randomUUID(),text,at,done:false,pre,preShown:false});await save(l);
+  err('');$('#what').value='';$('#time').value='';$('#pre').value='';preChips();$('#date').value=dstr(new Date());chips();
   toast(`Ustawione: ${dayLabel(at).toLowerCase()}, ${tstr(dt)}`);perm();render();tick();
 };
 function perm(){
@@ -160,7 +172,7 @@ async function render(){
   const act=l.filter(r=>!r.done),dn=l.filter(r=>r.done).sort((a,b)=>b.doneAt-a.doneAt);
   let h='<h2>Zaplanowane</h2>';
   h+=act.length?act.map(r=>{const due=r.at<=now,d=new Date(r.at);
-    return `<div class="item ${due?'due':''}"><div class="when"><b>${tstr(d)}</b><small>${dayLabel(r.at)}</small></div><div class="body"><b>${esc(r.text)}</b><small>${due?'<span class="dot"></span>Wróci, dopóki nie klikniesz Zrobione':rel(r.at)}</small></div>${due?`<button class="del" data-done="${r.id}">Zrobione</button>`:`<button class="del" data-del="${r.id}">Usuń</button>`}</div>`}).join('')
+    return `<div class="item ${due?'due':''}"><div class="when"><b>${tstr(d)}</b><small>${dayLabel(r.at)}</small></div><div class="body"><b>${esc(r.text)}</b><small>${due?'<span class="dot"></span>Wróci, dopóki nie klikniesz Zrobione':rel(r.at)+(r.pre?' · 🔔 '+fmtMin(r.pre)+' wcześniej':'')}</small></div>${due?`<button class="del" data-done="${r.id}">Zrobione</button>`:`<button class="del" data-del="${r.id}">Usuń</button>`}</div>`}).join('')
   :`<div class="empty">${bell}Nic nie czeka. Dodaj pierwsze przypomnienie.</div>`;
   if(dn.length)h+='<h2>Zrobione</h2>'+dn.slice(0,8).map(r=>`<div class="item done"><div class="when"><b>${tstr(new Date(r.at))}</b></div><div class="body"><b>${esc(r.text)}</b><small>Zrobione ${tstr(new Date(r.doneAt))}</small></div></div>`).join('')+'<button class="clr" id="clr">Wyczyść historię</button>';
   $('#list').innerHTML=h;
@@ -169,6 +181,10 @@ async function render(){
     try{const reg=await navigator.serviceWorker.getRegistration();if(reg)(await reg.getNotifications()).filter(n=>n.data&&n.data.id===id).forEach(n=>n.close())}catch(e){}render()});
   const c=$('#clr');if(c)c.onclick=async()=>{await save((await load()).filter(r=>!r.done));render()};
 }
+const fmtMin=m=>m<60?m+' min':(Math.floor(m/60)+' godz.'+(m%60?' '+(m%60)+' min':''));
+function preChips(){const v=$('#pre').value;document.querySelectorAll('[data-p]').forEach(b=>b.classList.toggle('on',v===b.dataset.p))}
+$('#pre').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,4);preChips()});
+document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{$('#pre').value=$('#pre').value===b.dataset.p?'':b.dataset.p;preChips();$('#err').textContent=''});
 const tick=()=>{if(navigator.serviceWorker&&navigator.serviceWorker.controller)navigator.serviceWorker.controller.postMessage({type:'check'});render()};
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').then(async r=>{await navigator.serviceWorker.ready;try{await r.periodicSync.register('check',{minInterval:60000})}catch(e){}});
