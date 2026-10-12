@@ -215,6 +215,8 @@ const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('remindme',1);r.onu
 async function load(){const d=await idb();return new Promise(res=>{const q=d.transaction(ST).objectStore(ST).get('list');q.onsuccess=()=>res(q.result||[]);q.onerror=()=>res([])})}
 async function save(l){const d=await idb();return new Promise(res=>{const t=d.transaction(ST,'readwrite');t.objectStore(ST).put(l,'list');t.oncomplete=res})}
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// sierotki: po jednoliterowym słowie twarda spacja (tylko wyświetlanie, zapisany tekst bez zmian)
+const nb=s=>{const re=/(^|\s)(\p{L}) +(?=\S)/gu,f=(m,a,b)=>a+b+' ';return s.replace(re,f).replace(re,f)};
 const dstr=d=>`${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`;
 const tstr=d=>`${pad(d.getHours())}:${pad(d.getMinutes())}`;
 const day0=d=>new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
@@ -354,9 +356,9 @@ async function render(){
   let h='<h2>Zaplanowane</h2>';
   h+=act.length?act.map(r=>{const due=r.at<=now,d=new Date(r.at),ph=now%2000;
     const k='a'+r.id,en=seenInit&&!seen.has(k);seen.add(k);
-    return `<div class="item ${due?'due':''}${en?' enter':''}" data-id="${r.id}"${due?` style="--gd:-${ph}ms"`:''}><div class="when"><b>${tstr(d)}</b><small>${dayLabel(r.at)}</small></div><div class="body"><b>${esc(r.text)}</b>${due?'<small>Wróci, dopóki nie klikniesz Zrobione</small>':'<small>'+rel(r.at)+'</small>'}${r.days?'<small>'+repSm+repLabel(r.days)+'</small>':''}${r.pre?'<small>'+bellSm+fmtMin(r.pre)+' wcześniej</small>':''}</div><div class="acts">${due?`<button class="del" data-done="${r.id}">Zrobione</button>`:`<button class="del" data-del="${r.id}">Usuń</button>`}${due?'':`<button class="del" data-edit="${r.id}">Edytuj</button>`}</div></div>`}).join('')
+    return `<div class="item ${due?'due':''}${en?' enter':''}" data-id="${r.id}"${due?` style="--gd:-${ph}ms"`:''}><div class="when"><b>${tstr(d)}</b><small>${dayLabel(r.at)}</small></div><div class="body"><b>${nb(esc(r.text))}</b>${due?'<small>Wróci, dopóki nie klikniesz Zrobione</small>':'<small>'+rel(r.at)+'</small>'}${r.days?'<small>'+repSm+repLabel(r.days)+'</small>':''}${r.pre?'<small>'+bellSm+fmtMin(r.pre)+' wcześniej</small>':''}</div><div class="acts">${due?`<button class="del" data-done="${r.id}">Zrobione</button>`:`<button class="del" data-del="${r.id}">Usuń</button>`}${due?'':`<button class="del" data-edit="${r.id}">Edytuj</button>`}</div></div>`}).join('')
   :`<div class="empty">${bell}Nic nie czeka. Dodaj pierwsze przypomnienie.</div>`;
-  if(dn.length)h+='<h2>Zrobione</h2>'+dn.slice(0,8).map(r=>{const k='d'+r.id,en=seenInit&&!seen.has(k);seen.add(k);return `<div class="item done${en?' enter':''}"><div class="when"><b>${tstr(new Date(r.at))}</b></div><div class="body"><b>${esc(r.text)}</b><small>Zrobione ${tstr(new Date(r.doneAt))}</small></div></div>`}).join('')+'<button class="clr" id="clr">Wyczyść historię</button>';
+  if(dn.length)h+='<h2>Zrobione</h2>'+dn.slice(0,8).map(r=>{const k='d'+r.id,en=seenInit&&!seen.has(k);seen.add(k);return `<div class="item done${en?' enter':''}"><div class="when"><b>${tstr(new Date(r.at))}</b></div><div class="body"><b>${nb(esc(r.text))}</b><small>Zrobione ${tstr(new Date(r.doneAt))}</small></div></div>`}).join('')+'<button class="clr" id="clr">Wyczyść historię</button>';
   seenInit=true;
   if(h===lastH)return;lastH=h;
   $('#list').innerHTML=h;
