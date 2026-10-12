@@ -269,7 +269,7 @@ function parseDate(s){const m=s.match(/^(\d{1,2})\.(\d{1,2})(?:\.(\d{4}))?$/);if
   let t=chk(y);if(t&&!m[3]&&day0(t)<day0(n))t=chk(y+1);return t}
 function chips(){const v=$('#date').value;
   document.querySelectorAll('[data-d]').forEach(b=>{const d=new Date();d.setDate(d.getDate()+ +b.dataset.d);b.classList.toggle('on',v===dstr(d))})}
-document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const d=new Date();d.setDate(d.getDate()+ +b.dataset.d);$('#date').value=dstr(d);chips();$('#err').textContent=''});
+document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const d=new Date();d.setDate(d.getDate()+ +b.dataset.d);$('#date').value=b.classList.contains('on')?'':dstr(d);chips();$('#err').textContent=''});
 let rollT=0;
 function endRoll(){clearTimeout(rollT);$('#troll').classList.remove('on');$('#time').classList.remove('rolling')}
 function setTimeStr(v,dir,fast){
