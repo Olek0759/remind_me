@@ -50,7 +50,9 @@ h2{font-size:14px;margin:26px 4px 10px;color:var(--mute);font-weight:600}
 .when small{font-size:12px;color:var(--mute)}
 .body{flex:1;min-width:0}
 .body b{display:block;font-weight:600;word-break:break-word}
-.body small{color:var(--mute);font-size:13px}
+.body small{display:flex;align-items:center;gap:6px;color:var(--mute);font-size:13px;margin-top:2px}
+.body small svg{flex:none}
+.item.due .body small{color:inherit}
 .del{font:inherit;font-size:13px;font-weight:600;color:var(--blue);background:var(--sky);border:0;border-radius:12px;padding:9px 12px;cursor:pointer}
 .item.due{background:var(--blue);color:#fff}
 .item.due .when b,.item.due .body small,.item.due .when small{color:#fff}
@@ -71,6 +73,20 @@ h2{font-size:14px;margin:26px 4px 10px;color:var(--mute);font-weight:600}
 .hint{font-size:12.5px;color:var(--mute);text-align:center;margin-top:22px}
 .toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translate(-50%,120px);background:var(--ink);color:var(--bg);padding:13px 20px;border-radius:999px;font-size:14px;font-weight:600;transition:transform .3s;max-width:90%;text-align:center}
 .toast.show{transform:translate(-50%,0)}
+.tabs{display:flex;background:rgba(255,255,255,.14);border-radius:999px;padding:4px;margin-bottom:16px}
+.tab{flex:1;font:inherit;font-size:13.5px;font-weight:600;color:#fff;background:transparent;border:0;border-radius:999px;padding:9px 12px;cursor:pointer;transition:background .15s,color .15s}
+.tab.on{background:#fff;color:var(--blue)}
+.hero .chk{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 14px;color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+.chk input{width:22px;height:22px;margin:0;accent-color:#fff;cursor:pointer}
+.days{flex-wrap:nowrap;gap:6px}
+.days .chip{flex:1;min-width:0;padding:10px 0;font-size:13px;text-align:center}
+.chip:disabled{opacity:.55;cursor:default}
+.undo{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translate(-50%,160px);width:min(440px,calc(100% - 32px));background:var(--ink);color:var(--bg);border-radius:16px;overflow:hidden;z-index:5;visibility:hidden;transition:transform .3s,visibility 0s .3s}
+.undo.show{transform:translate(-50%,0);visibility:visible;transition-delay:0s}
+.u-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 12px 16px 18px;font-size:14px;font-weight:600}
+.u-row button{font:inherit;font-size:13.5px;font-weight:700;color:var(--ink);background:var(--bg);border:0;border-radius:999px;padding:9px 16px;cursor:pointer}
+.u-bar{position:absolute;left:0;bottom:0;width:100%;height:4px;background:var(--bright);transform-origin:left center}
+@keyframes drain{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 :focus-visible{outline:2px solid var(--bright);outline-offset:2px}
 </style></head><body><main>
 <div class="top"><div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 003.4 0"/></svg></div><h1>Remind me</h1></div>
@@ -89,9 +105,21 @@ h2{font-size:14px;margin:26px 4px 10px;color:var(--mute);font-weight:600}
   </div>
   <div class="sep"></div>
   <div class="sec">
-    <label for="date">Data</label>
-    <input id="date" inputmode="numeric" placeholder="DD.MM.RRRR" autocomplete="off">
-    <div class="chips"><button class="chip" data-d="0">Dziś</button><button class="chip" data-d="1">Jutro</button></div>
+    <div class="tabs" role="tablist" aria-label="Rodzaj przypomnienia">
+      <button type="button" class="tab on" id="tab-once" role="tab" aria-selected="true" aria-controls="p-once">Jednorazowo</button>
+      <button type="button" class="tab" id="tab-rep" role="tab" aria-selected="false" aria-controls="p-rep">Powtarzaj</button>
+    </div>
+    <div id="p-once" role="tabpanel" aria-labelledby="tab-once">
+      <label for="date">Data</label>
+      <input id="date" inputmode="numeric" placeholder="DD.MM.RRRR" autocomplete="off">
+      <div class="chips"><button class="chip" data-d="0">Dziś</button><button class="chip" data-d="1">Jutro</button></div>
+    </div>
+    <div id="p-rep" role="tabpanel" aria-labelledby="tab-rep" hidden>
+      <label class="chk"><input type="checkbox" id="daily"> Codziennie</label>
+      <div class="chips days" id="days" aria-label="Dni tygodnia">
+        <button type="button" class="chip" data-wd="1">Pn</button><button type="button" class="chip" data-wd="2">Wt</button><button type="button" class="chip" data-wd="3">Śr</button><button type="button" class="chip" data-wd="4">Cz</button><button type="button" class="chip" data-wd="5">Pt</button><button type="button" class="chip" data-wd="6">Sb</button><button type="button" class="chip" data-wd="0">Nd</button>
+      </div>
+    </div>
   </div>
   <div class="sep"></div>
   <div class="sec">
@@ -106,6 +134,7 @@ h2{font-size:14px;margin:26px 4px 10px;color:var(--mute);font-weight:600}
 <div id="list"></div>
 </main>
 <div class="toast" id="toast"></div>
+<div class="undo" id="undo" role="status" aria-live="polite"><div class="u-row"><span>Usunięto przypomnienie</span><button type="button" id="undoBtn">Cofnij</button></div><i class="u-bar" id="undoBar"></i></div>
 <script>
 const ST='kv',$=s=>document.querySelector(s),pad=n=>String(n).padStart(2,'0');
 const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('remindme',1);r.onupgradeneeded=()=>r.result.createObjectStore(ST);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
@@ -122,6 +151,28 @@ function rel(at){const m=Math.round((at-Date.now())/60000);
   if(m<1)return 'za chwilę';if(m<60)return `za ${m} min`;
   if(m<1440){const h=Math.floor(m/60),r=m%60;return `za ${h} godz.`+(r?` ${r} min`:'')}
   return dayLabel(at)}
+// --- powtarzanie ---
+const WN={1:'Pn',2:'Wt',3:'Śr',4:'Cz',5:'Pt',6:'Sb',0:'Nd'};
+function repLabel(d){const o=[1,2,3,4,5,6,0].filter(x=>d.includes(x));
+  if(o.length===7)return 'Codziennie';if(o.join()==='1,2,3,4,5')return 'Pn–Pt';return o.map(x=>WN[x]).join(', ')}
+function nextAt(r,from){if(!r.days||!r.days.length)return null;
+  const o=new Date(r.at),h=o.getHours(),m=o.getMinutes(),n=new Date(from||Date.now());
+  for(let i=0;i<=8;i++){const d=new Date(n.getFullYear(),n.getMonth(),n.getDate()+i,h,m,0,0);
+    if(r.days.includes(d.getDay())&&d.getTime()>n.getTime())return d.getTime()}
+  return null}
+function complete(r){const nx=nextAt(r);
+  if(nx){r.at=nx;r.preShown=!!r.pre&&nx-r.pre*60000<=Date.now();return nx}
+  r.done=true;r.doneAt=Date.now();return 0}
+// --- cofnij usunięcie ---
+const UNDO_MS=5000;let undoT=null,undoItem=null;
+function hideUndo(){clearTimeout(undoT);undoItem=null;$('#undo').classList.remove('show')}
+function showUndo(item){
+  clearTimeout(undoT);undoItem=item;
+  const bar=$('#undoBar');bar.style.animation='none';void bar.offsetWidth;bar.style.animation='drain '+UNDO_MS+'ms linear forwards';
+  $('#undo').classList.add('show');undoT=setTimeout(hideUndo,UNDO_MS);
+}
+$('#undoBtn').onclick=async()=>{const it=undoItem;if(!it)return;hideUndo();
+  const l=await load();if(!l.some(r=>r.id===it.id))l.push(it);await save(l);toast('Przywrócono');render();tick()};
 // --- wpisywanie z palca ---
 $('#time').addEventListener('input',e=>{
   const v=e.target.value.replace(/\D/g,'').slice(0,4);let o=v;
@@ -149,16 +200,25 @@ $('#add').onclick=async()=>{
   const err=m=>{$('#err').textContent=m},text=$('#what').value.trim();
   if(!text)return err('Wpisz, co ci przypomnieć.');
   const tm=parseTime($('#time').value.trim());if(!tm)return err('Wpisz godzinę, np. 1430 albo 8:15.');
-  const dt=parseDate($('#date').value.trim());if(!dt)return err('Wpisz datę, np. 1210 albo 12.10.2026.');
-  dt.setHours(tm[0],tm[1],0,0);const at=dt.getTime();
-  if(at<=Date.now())return err('Ta godzina już minęła. Wybierz późniejszą.');
+  let dt,at,days=null;
+  if(mode==='rep'){
+    days=[...rep].sort((a,b)=>a-b);
+    if(!days.length)return err('Wybierz dni powtarzania albo zaznacz Codziennie.');
+    dt=new Date();dt.setHours(tm[0],tm[1],0,0);at=nextAt({at:dt.getTime(),days});
+  }else{
+    dt=parseDate($('#date').value.trim());if(!dt)return err('Wpisz datę, np. 1210 albo 12.10.2026.');
+    dt.setHours(tm[0],tm[1],0,0);at=dt.getTime();
+    if(at<=Date.now())return err('Ta godzina już minęła. Wybierz późniejszą.');
+  }
   const pre=parseInt($('#pre').value||'0',10)||0;
   if(pre>10080)return err('Uprzedzenie może być maksymalnie 10080 minut (tydzień) wcześniej.');
-  if(pre>0&&at-pre*60000<=Date.now())return err('Przypomnienie uprzedzające wypadłoby w przeszłości. Zmniejsz liczbę minut.');
+  const preLate=pre>0&&at-pre*60000<=Date.now();
+  if(preLate&&!days)return err('Przypomnienie uprzedzające wypadłoby w przeszłości. Zmniejsz liczbę minut.');
   if('Notification' in window&&Notification.permission==='default')await Notification.requestPermission();
-  const l=await load();l.push({id:crypto.randomUUID(),text,at,done:false,pre,preShown:false});await save(l);
+  const l=await load();l.push({id:crypto.randomUUID(),text,at,done:false,pre,preShown:preLate,...(days?{days}:{})});await save(l);
   err('');$('#what').value='';$('#time').value='';$('#pre').value='';preChips();$('#date').value=dstr(new Date());chips();
-  toast(`Ustawione: ${dayLabel(at).toLowerCase()}, ${tstr(dt)}`);perm();render();tick();
+  setMode('once');$('#daily').checked=false;rep.clear();dayChips();
+  toast(`Ustawione: ${(days?repLabel(days):dayLabel(at)).toLowerCase()}, ${tstr(dt)}`);perm();render();tick();
 };
 function perm(){
   if(!('Notification' in window)){$('#perm').innerHTML='<div class="banner">Ta przeglądarka nie obsługuje powiadomień. Na iPhonie dodaj aplikację do ekranu początkowego.</div>';return}
@@ -166,25 +226,38 @@ function perm(){
   $('#perm').innerHTML='<div class="banner">Żeby przypomnienia dochodziły, włącz powiadomienia.<br><button id="allow">Włącz powiadomienia</button></div>';
   $('#allow').onclick=async()=>{await Notification.requestPermission();perm()};
 }
+const repSm='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V10a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 01-4 4H3"/></svg>';
+const bellSm='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 003.4 0"/></svg>';
 const bell='<svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".5"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 003.4 0"/></svg>';
 async function render(){
   const l=(await load()).sort((a,b)=>a.at-b.at),now=Date.now();
   const act=l.filter(r=>!r.done),dn=l.filter(r=>r.done).sort((a,b)=>b.doneAt-a.doneAt);
   let h='<h2>Zaplanowane</h2>';
   h+=act.length?act.map(r=>{const due=r.at<=now,d=new Date(r.at);
-    return `<div class="item ${due?'due':''}"><div class="when"><b>${tstr(d)}</b><small>${dayLabel(r.at)}</small></div><div class="body"><b>${esc(r.text)}</b><small>${due?'<span class="dot"></span>Wróci, dopóki nie klikniesz Zrobione':rel(r.at)+(r.pre?' · 🔔 '+fmtMin(r.pre)+' wcześniej':'')}</small></div>${due?`<button class="del" data-done="${r.id}">Zrobione</button>`:`<button class="del" data-del="${r.id}">Usuń</button>`}</div>`}).join('')
+    return `<div class="item ${due?'due':''}"><div class="when"><b>${tstr(d)}</b><small>${dayLabel(r.at)}</small></div><div class="body"><b>${esc(r.text)}</b>${due?'<small><span class="dot"></span>Wróci, dopóki nie klikniesz Zrobione</small>':'<small>'+rel(r.at)+'</small>'}${r.days?'<small>'+repSm+repLabel(r.days)+'</small>':''}${r.pre?'<small>'+bellSm+fmtMin(r.pre)+' wcześniej</small>':''}</div>${due?`<button class="del" data-done="${r.id}">Zrobione</button>`:`<button class="del" data-del="${r.id}">Usuń</button>`}</div>`}).join('')
   :`<div class="empty">${bell}Nic nie czeka. Dodaj pierwsze przypomnienie.</div>`;
   if(dn.length)h+='<h2>Zrobione</h2>'+dn.slice(0,8).map(r=>`<div class="item done"><div class="when"><b>${tstr(new Date(r.at))}</b></div><div class="body"><b>${esc(r.text)}</b><small>Zrobione ${tstr(new Date(r.doneAt))}</small></div></div>`).join('')+'<button class="clr" id="clr">Wyczyść historię</button>';
   $('#list').innerHTML=h;
-  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{await save((await load()).filter(r=>r.id!==b.dataset.del));render()});
-  document.querySelectorAll('[data-done]').forEach(b=>b.onclick=async()=>{const id=b.dataset.done,l=await load(),r=l.find(x=>x.id===id);if(r){r.done=true;r.doneAt=Date.now();await save(l)}
-    try{const reg=await navigator.serviceWorker.getRegistration();if(reg)(await reg.getNotifications()).filter(n=>n.data&&n.data.id===id).forEach(n=>n.close())}catch(e){}render()});
+  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{const l=await load(),r=l.find(x=>x.id===b.dataset.del);if(!r)return;await save(l.filter(x=>x!==r));render();showUndo(r)});
+  document.querySelectorAll('[data-done]').forEach(b=>b.onclick=async()=>{const id=b.dataset.done,l=await load(),r=l.find(x=>x.id===id);let nx=0;if(r){nx=complete(r);await save(l)}
+    try{const reg=await navigator.serviceWorker.getRegistration();if(reg)(await reg.getNotifications()).filter(n=>n.data&&n.data.id===id).forEach(n=>n.close())}catch(e){}if(nx)toast(`Następne: ${dayLabel(nx).toLowerCase()}, ${tstr(new Date(nx))}`);render()});
   const c=$('#clr');if(c)c.onclick=async()=>{await save((await load()).filter(r=>!r.done));render()};
 }
 const fmtMin=m=>m<60?m+' min':(Math.floor(m/60)+' godz.'+(m%60?' '+(m%60)+' min':''));
 function preChips(){const v=$('#pre').value;document.querySelectorAll('[data-p]').forEach(b=>b.classList.toggle('on',v===b.dataset.p))}
 $('#pre').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,4);preChips()});
 document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{$('#pre').value=$('#pre').value===b.dataset.p?'':b.dataset.p;preChips();$('#err').textContent=''});
+let mode='once';const rep=new Set();
+function setMode(m){mode=m;
+  [['once','#tab-once','#p-once'],['rep','#tab-rep','#p-rep']].forEach(([k,tb,pn])=>{
+    $(tb).classList.toggle('on',m===k);$(tb).setAttribute('aria-selected',m===k);$(pn).hidden=m!==k});
+  $('#err').textContent=''}
+function dayChips(){
+  document.querySelectorAll('[data-wd]').forEach(b=>b.classList.toggle('on',rep.has(+b.dataset.wd)));
+  $('#daily').checked=rep.size===7}
+$('#tab-once').onclick=()=>setMode('once');$('#tab-rep').onclick=()=>setMode('rep');
+$('#daily').onchange=()=>{rep.clear();if($('#daily').checked)for(let i=0;i<7;i++)rep.add(i);dayChips();$('#err').textContent=''};
+document.querySelectorAll('[data-wd]').forEach(b=>b.onclick=()=>{const w=+b.dataset.wd;rep.has(w)?rep.delete(w):rep.add(w);dayChips();$('#err').textContent=''});
 const tick=()=>{if(navigator.serviceWorker&&navigator.serviceWorker.controller)navigator.serviceWorker.controller.postMessage({type:'check'});render()};
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').then(async r=>{await navigator.serviceWorker.ready;try{await r.periodicSync.register('check',{minInterval:60000})}catch(e){}});
