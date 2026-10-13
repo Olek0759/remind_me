@@ -124,6 +124,46 @@ html{scroll-behavior:smooth}
 @keyframes drain{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 :focus-visible{outline:2px solid var(--bright);outline-offset:2px}
 .ft{margin:0;text-align:center;font-size:11px}
+.ftx{max-width:340px;margin:0 auto;font-size:12px;line-height:1.5;color:var(--mute);text-align:left;display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows .35s ease,opacity .3s ease,visibility 0s}
+.ftx>.in{min-height:0;overflow:hidden;padding:0 16px 10px;transition:transform .35s ease}
+.ftx.off{grid-template-rows:0fr;opacity:0;visibility:hidden;pointer-events:none;transition:grid-template-rows .35s ease,opacity .2s ease,visibility 0s .35s}
+.ftx.off>.in{transform:translateY(8px)}
+.ft .inf{transition:opacity .2s}
+.ft .inf[aria-expanded="true"]{opacity:.8}
+@media(prefers-reduced-motion:reduce){.ftx,.ftx.off,.ftx>.in{transition:none}}
+.ftx p{margin:0 0 14px}
+.ftx p:last-child{margin-bottom:0}
+.ftx b{display:block;margin-bottom:2px;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--blue)}
+.ft .inf{vertical-align:middle;padding:8px 6px}
+.ft .inf svg{display:block}
+/* o aplikacji */
+body.lock{overflow:hidden}
+.about{position:fixed;inset:0;z-index:50;background:var(--bg);color:var(--ink);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;opacity:0;visibility:hidden;transform:translateY(24px);transition:opacity .3s ease,transform .35s cubic-bezier(.2,.9,.25,1),visibility 0s .35s}
+.about.show{opacity:1;visibility:visible;transform:none;transition-delay:0s}
+.ab{max-width:480px;margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 16px max(32px,env(safe-area-inset-bottom))}
+.abtop{display:flex;align-items:center;gap:12px;margin:4px 4px 18px}
+.abtop h1{font-size:22px;margin:0;letter-spacing:-.4px}
+.abx{width:38px;height:38px;flex:none;display:grid;place-items:center;padding:0;border:0;border-radius:12px;background:var(--sky);color:var(--blue);cursor:pointer;transition:transform .1s}
+.abx:active{transform:scale(.94)}
+.abh{background:var(--blue);color:#fff;border-radius:28px;padding:26px 20px;margin-bottom:12px;text-align:center}
+.abh svg{display:block;margin:0 auto 10px}
+.abh b{display:block;font-size:22px;letter-spacing:-.3px}
+.abh p{margin:6px 0 0;font-size:14px;opacity:.85}
+.about .card h3{margin:0 0 10px;font-size:15px;letter-spacing:-.2px}
+.about .card p,.about .card li{font-size:14px;line-height:1.55}
+.about .card p{margin:0}
+.about .card ul{margin:0;padding-left:18px}
+.about .card li+li{margin-top:8px}
+.about .card li::marker{color:var(--bright)}
+.about .card b{font-weight:600;color:var(--blue)}
+.about.show .abh,.about.show .card{animation:fadeup .4s ease both}
+.about.show .ab>:nth-child(3){animation-delay:.04s}
+.about.show .ab>:nth-child(4){animation-delay:.08s}
+.about.show .ab>:nth-child(5){animation-delay:.12s}
+.about.show .ab>:nth-child(6){animation-delay:.16s}
+.about.show .ab>:nth-child(7){animation-delay:.2s}
+.about.show .ab>:nth-child(8){animation-delay:.24s}
+@media(prefers-reduced-motion:reduce){.about,.about.show{transition:none}.about.show .abh,.about.show .card{animation:none}}
 .ft button{font:inherit;color:var(--mute);opacity:.35;background:none;border:0;padding:10px 12px;cursor:pointer}
 .ft button:active{opacity:.8}
 .ft span{color:var(--mute);opacity:.25}
@@ -206,7 +246,28 @@ html{scroll-behavior:smooth}
 
 <div id="list"></div>
 </main>
-<p class="ft"><button type="button" id="bkp">kopia</button><span>·</span><button type="button" id="rst">wczytaj</button><input type="file" id="rf" accept=".txt,.json,text/plain,application/json" hidden></p>
+<div class="ft"><div class="ftx off" id="ftx" aria-hidden="true"><div class="in"><p><b>kopia</b>zapisuje wszystkie przypomnienia do pliku, który możesz zachować np. w Plikach lub na Dysku.</p><p><b>wczytaj</b>dodaje przypomnienia z takiego pliku. Te, które już masz, zostają bez zmian.</p><p><b>o aplikacji</b>otwiera krótki opis działania: jak dodawać przypomnienia, jak działają powiadomienia i gdzie zapisują się twoje dane.</p></div></div><button type="button" id="bkp">kopia</button><span>·</span><button type="button" id="rst">wczytaj</button><span>·</span><button type="button" id="abt">o aplikacji</button><span>·</span><button type="button" id="inf" class="inf" aria-label="Objaśnienie: kopia, wczytaj i o aplikacji" aria-expanded="false" aria-controls="ftx"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6"/><circle cx="12" cy="7.4" r=".6" fill="currentColor"/></svg></button><input type="file" id="rf" accept=".txt,.json,text/plain,application/json" hidden></div>
+<div class="about" id="about" role="dialog" aria-modal="true" aria-labelledby="abttl" aria-hidden="true"><div class="ab">
+<div class="abtop"><button type="button" class="abx" id="abx" aria-label="Wróć"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="abttl">O aplikacji</h1></div>
+<section class="abh"><svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 003.4 0"/></svg><b>Remind me</b><p>Przypomnienia, które wracają, dopóki ich nie odhaczysz.</p></section>
+<section class="card"><h3>Jak dodać przypomnienie</h3><ul>
+<li>Wpisz, co ci przypomnieć, i ustaw godzinę: wpisz ją z palca (np. 1430) albo użyj plusów i minusów przy godzinie i minutach. Przytrzymanie przewija szybciej. Szybkie przyciski ustawiają godzinę za 15 minut, za godzinę albo za 3 godziny.</li>
+<li><b>Jednorazowo:</b> wybierz Dziś, Jutro albo wpisz datę. Ponowne dotknięcie Dziś lub Jutro odznacza je.</li>
+<li><b>Powtarzaj:</b> zaznacz Codziennie albo wybrane dni tygodnia.</li>
+</ul></section>
+<section class="card"><h3>Przypomnij wcześniej</h3><p>Możesz dostać dodatkowe, krótkie powiadomienie od kilku minut do tygodnia przed terminem. Nie ma przycisku i nie wraca. Dotknięcie otwiera aplikację.</p></section>
+<section class="card"><h3>Gdy nadejdzie czas</h3><ul>
+<li>Powiadomienie wraca, dopóki nie dotkniesz <b>Zrobione</b>, także jeśli je zamkniesz.</li>
+<li>Na liście kafelek pulsuje i ma tylko przycisk Zrobione.</li>
+<li>Jednorazowe przypomnienie trafia wtedy do historii. Powtarzane czeka na następny ustalony dzień.</li>
+</ul></section>
+<section class="card"><h3>Lista</h3><p>W Zaplanowanych możesz przypomnienie edytować albo usunąć. Po usunięciu masz 5 sekund na cofnięcie. W Zrobionych zostaje historia ostatnich 8 przypomnień, którą możesz wyczyścić.</p></section>
+<section class="card"><h3>Twoje dane</h3><p>Wszystko zapisuje się tylko w tej przeglądarce na tym urządzeniu, bez konta i serwera. Wyczyszczenie danych witryny usuwa przypomnienia. Dlatego na dole są <b>kopia</b>, która zapisuje plik, i <b>wczytaj</b>, które dodaje z niego brakujące przypomnienia, np. na nowym telefonie.</p></section>
+<section class="card"><h3>Dobrze wiedzieć</h3><ul>
+<li>Powiadomienia wymagają twojej zgody. Na iPhonie działają tylko wtedy, gdy aplikacja jest dodana do ekranu początkowego.</li>
+<li>Gdy aplikacja jest zamknięta, przeglądarka sama decyduje, jak często ją sprawdzać, więc powiadomienie może przyjść z opóźnieniem.</li>
+</ul></section>
+</div></div>
 <div class="toast" id="toast"></div>
 <div class="undo" id="undo" role="status" aria-live="polite"><div class="u-row"><span>Usunięto przypomnienie</span><button type="button" id="undoBtn">Cofnij</button></div><i class="u-bar" id="undoBar"></i></div>
 <script>
@@ -401,6 +462,7 @@ $('#bkp').onclick=async()=>{
   const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=name;document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('Zapisano kopię')};
 $('#rst').onclick=()=>$('#rf').click();
+$('#inf').onclick=()=>{const t=$('#ftx'),o=t.classList.contains('off');t.classList.toggle('off',!o);t.setAttribute('aria-hidden',!o);$('#inf').setAttribute('aria-expanded',o);if(o)setTimeout(()=>t.scrollIntoView({block:'nearest',behavior:'smooth'}),360)};
 $('#rf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
   try{const d=JSON.parse(await f.text()),inc=Array.isArray(d)?d:d.list;
     if(!Array.isArray(inc))throw 0;
@@ -408,6 +470,19 @@ $('#rf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)re
     inc.forEach(r=>{if(r&&r.id&&r.text&&r.at&&!ids.has(r.id)){l.push(r);n++}});
     await save(l);toast(n?`Wczytano: ${n}`:'Nic nowego do wczytania');render();tick()}
   catch(x){toast('To nie jest plik kopii')}};
+// --- o aplikacji ---
+let aboutOpen=false;
+function openAbout(){if(aboutOpen)return;aboutOpen=true;
+  try{history.pushState({about:1},'')}catch(e){}
+  const a=$('#about');a.scrollTop=0;a.classList.add('show');a.setAttribute('aria-hidden','false');document.body.classList.add('lock');
+  setTimeout(()=>$('#abx').focus({preventScroll:true}),50)}
+function closeAbout(fromPop){if(!aboutOpen)return;aboutOpen=false;
+  const a=$('#about');a.classList.remove('show');a.setAttribute('aria-hidden','true');document.body.classList.remove('lock');
+  if(!fromPop&&history.state&&history.state.about){try{history.back()}catch(e){}}
+  try{$('#abt').focus({preventScroll:true})}catch(e){}}
+$('#abt').onclick=openAbout;$('#abx').onclick=()=>closeAbout();
+window.addEventListener('popstate',()=>closeAbout(true));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAbout()});
 $('#date').value=dstr(new Date());chips();perm();greet();render();setInterval(tick,5000);
 document.addEventListener('visibilitychange',tick);
 (()=>{const sp=$('#splash'),t0=performance.now();
