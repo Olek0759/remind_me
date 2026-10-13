@@ -100,6 +100,14 @@ html{scroll-behavior:smooth}
 .item.done .body small{color:var(--ok)}
 .empty{text-align:center;padding:26px 10px;color:var(--mute);font-size:14px}
 .empty svg{display:block;margin:0 auto 10px}
+.conf{margin:6px 0 0;padding:14px 16px;background:var(--card);border-radius:20px;text-align:center;animation:fadeup .3s ease both}
+.conf span{display:block;margin-bottom:10px;font-size:14px;font-weight:600}
+.cbt{display:flex;gap:8px}
+.cbt .del{flex:1;padding:11px 12px;font-size:14px}
+.del.cy{background:var(--blue);color:#fff}
+@media(prefers-reduced-motion:reduce){.conf{animation:none}}
+.hrow{display:flex}
+.hrow .clr{flex:1;width:auto}
 .clr{width:100%;font:inherit;font-size:13px;font-weight:600;color:var(--mute);background:transparent;border:0;padding:12px;cursor:pointer}
 .banner{background:var(--sky);border-radius:20px;padding:16px;margin-bottom:12px;font-size:14px}
 .banner button{margin-top:10px;font:inherit;font-weight:700;color:#fff;background:var(--blue);border:0;border-radius:12px;padding:12px 16px;cursor:pointer}
@@ -261,7 +269,7 @@ body.lock{overflow:hidden}
 <li>Na liście kafelek pulsuje i ma tylko przycisk Zrobione.</li>
 <li>Jednorazowe przypomnienie trafia wtedy do historii. Powtarzane czeka na następny ustalony dzień.</li>
 </ul></section>
-<section class="card"><h3>Lista</h3><p>W Zaplanowanych możesz przypomnienie edytować albo usunąć. Po usunięciu masz 5 sekund na cofnięcie. W Zrobionych zostaje historia ostatnich 8 przypomnień, którą możesz wyczyścić.</p></section>
+<section class="card"><h3>Lista</h3><p>W Zaplanowanych możesz przypomnienie edytować albo usunąć. Po usunięciu masz 5 sekund na cofnięcie. W Zrobionych widać 5 ostatnich przypomnień, a starsze kryją się pod „Pokaż starsze”. Całą historię możesz wyczyścić: aplikacja najpierw zapyta o potwierdzenie, a potem przez 5 sekund można to cofnąć.</p></section>
 <section class="card"><h3>Twoje dane</h3><p>Wszystko zapisuje się tylko w tej przeglądarce na tym urządzeniu, bez konta i serwera. Wyczyszczenie danych witryny usuwa przypomnienia. Dlatego na dole są <b>kopia</b>, która zapisuje plik, i <b>wczytaj</b>, które dodaje z niego brakujące przypomnienia, np. na nowym telefonie.</p></section>
 <section class="card"><h3>Dobrze wiedzieć</h3><ul>
 <li>Powiadomienia wymagają twojej zgody. Na iPhonie działają tylko wtedy, gdy aplikacja jest dodana do ekranu początkowego.</li>
@@ -269,7 +277,7 @@ body.lock{overflow:hidden}
 </ul></section>
 </div></div>
 <div class="toast" id="toast"></div>
-<div class="undo" id="undo" role="status" aria-live="polite"><div class="u-row"><span>Usunięto przypomnienie</span><button type="button" id="undoBtn">Cofnij</button></div><i class="u-bar" id="undoBar"></i></div>
+<div class="undo" id="undo" role="status" aria-live="polite"><div class="u-row"><span id="undoMsg">Usunięto przypomnienie</span><button type="button" id="undoBtn">Cofnij</button></div><i class="u-bar" id="undoBar"></i></div>
 <script>
 const ST='kv',$=s=>document.querySelector(s),pad=n=>String(n).padStart(2,'0');
 const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('remindme',1);r.onupgradeneeded=()=>r.result.createObjectStore(ST);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
@@ -303,13 +311,13 @@ function complete(r){const nx=nextAt(r);
 // --- cofnij usunięcie ---
 const UNDO_MS=5000;let undoT=null,undoItem=null;
 function hideUndo(){clearTimeout(undoT);undoItem=null;$('#undo').classList.remove('show')}
-function showUndo(item){
-  clearTimeout(undoT);undoItem=item;
+function showUndo(items,msg){
+  clearTimeout(undoT);undoItem=items;$('#undoMsg').textContent=msg;
   const bar=$('#undoBar');bar.style.animation='none';void bar.offsetWidth;bar.style.animation='drain '+UNDO_MS+'ms linear forwards';
   $('#undo').classList.add('show');undoT=setTimeout(hideUndo,UNDO_MS);
 }
 $('#undoBtn').onclick=async()=>{const it=undoItem;if(!it)return;hideUndo();
-  const l=await load();if(!l.some(r=>r.id===it.id))l.push(it);await save(l);toast('Przywrócono');render();tick()};
+  const l=await load();it.forEach(r=>{if(!l.some(x=>x.id===r.id))l.push(r)});await save(l);toast('Przywrócono');render();tick()};
 // --- wpisywanie z palca ---
 $('#time').addEventListener('input',e=>{
   const v=e.target.value.replace(/\D/g,'').slice(0,4);let o=v;
@@ -404,7 +412,8 @@ function perm(){
 const repSm='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V10a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 01-4 4H3"/></svg>';
 const bellSm='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 003.4 0"/></svg>';
 const bell='<svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".5"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 003.4 0"/></svg>';
-const seen=new Set();let seenInit=false,leaving=false,lastH='';
+const seen=new Set(),HIST=5;let seenInit=false,leaving=false,lastH='',oldOpen=false,animOld=false,confirmClr=false;
+const CONF='<div class="conf"><span>Usunąć całą historię?</span><div class="cbt"><button class="del cy" id="cyes">Tak, usuń</button><button class="del" id="cno">Nie, cofnij</button></div></div>';
 function leave(el){return new Promise(res=>{if(!el)return res();leaving=true;
   el.style.height=el.offsetHeight+'px';el.style.overflow='hidden';void el.offsetHeight;
   el.style.transition='height .32s ease,opacity .25s ease,margin .32s ease,padding .32s ease,transform .32s ease';
@@ -419,15 +428,30 @@ async function render(){
     const k='a'+r.id,en=seenInit&&!seen.has(k);seen.add(k);
     return `<div class="item ${due?'due':''}${en?' enter':''}" data-id="${r.id}"${due?` style="--gd:-${ph}ms"`:''}><div class="when"><b>${tstr(d)}</b><small>${dayLabel(r.at)}</small></div><div class="body"><b>${nb(esc(r.text))}</b>${due?'<small>Wróci, dopóki nie klikniesz Zrobione</small>':'<small>'+rel(r.at)+'</small>'}${r.days?'<small>'+repSm+repLabel(r.days)+'</small>':''}${r.pre?'<small>'+bellSm+fmtMin(r.pre)+' wcześniej</small>':''}</div><div class="acts">${due?`<button class="del" data-done="${r.id}">Zrobione</button>`:`<button class="del" data-del="${r.id}">Usuń</button>`}${due?'':`<button class="del" data-edit="${r.id}">Edytuj</button>`}</div></div>`}).join('')
   :`<div class="empty">${bell}Nic nie czeka. Dodaj pierwsze przypomnienie.</div>`;
-  if(dn.length)h+='<h2>Zrobione</h2>'+dn.slice(0,8).map(r=>{const k='d'+r.id,en=seenInit&&!seen.has(k);seen.add(k);return `<div class="item done${en?' enter':''}"><div class="when"><b>${tstr(new Date(r.at))}</b></div><div class="body"><b>${nb(esc(r.text))}</b><small>Zrobione ${tstr(new Date(r.doneAt))}</small></div></div>`}).join('')+'<button class="clr" id="clr">Wyczyść historię</button>';
-  seenInit=true;
+  const older=dn.slice(HIST);if(!older.length)oldOpen=false;if(!dn.length)confirmClr=false;
+  const drow=(r,old)=>{const k='d'+r.id,en=seenInit&&(!seen.has(k)||(old&&animOld));seen.add(k);return `<div class="item done${old?' old':''}${en?' enter':''}"><div class="when"><b>${tstr(new Date(r.at))}</b></div><div class="body"><b>${nb(esc(r.text))}</b><small>Zrobione ${tstr(new Date(r.doneAt))}</small></div></div>`};
+  if(dn.length)h+='<h2>Zrobione</h2>'+dn.slice(0,HIST).map(r=>drow(r,false)).join('')+(oldOpen?older.map(r=>drow(r,true)).join(''):'')
+    +(confirmClr?CONF:older.length?`<div class="hrow"><button class="clr" id="more" aria-expanded="${oldOpen}">${oldOpen?'Ukryj starsze':'Pokaż starsze ('+older.length+')'}</button><button class="clr" id="clr">Wyczyść historię</button></div>`:'<button class="clr" id="clr">Wyczyść historię</button>');
+  seenInit=true;animOld=false;
   if(h===lastH)return;lastH=h;
   $('#list').innerHTML=h;
-  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{const l=await load(),r=l.find(x=>x.id===b.dataset.del);if(!r)return;seen.delete('a'+r.id);await leave(b.closest('.item'));await save(l.filter(x=>x!==r));render();showUndo(r)});
+  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{const l=await load(),r=l.find(x=>x.id===b.dataset.del);if(!r)return;seen.delete('a'+r.id);await leave(b.closest('.item'));await save(l.filter(x=>x!==r));render();showUndo([r],'Usunięto przypomnienie')});
   document.querySelectorAll('[data-done]').forEach(b=>b.onclick=async()=>{const id=b.dataset.done,l=await load(),r=l.find(x=>x.id===id);let nx=0;if(r){const el=b.closest('.item');nx=complete(r);if(r.done)await leave(el);await save(l)}
     try{const reg=await navigator.serviceWorker.getRegistration();if(reg)(await reg.getNotifications()).filter(n=>n.data&&n.data.id===id).forEach(n=>n.close())}catch(e){}if(nx)toast(`Następne: ${dayLabel(nx).toLowerCase()}, ${tstr(new Date(nx))}`);render()});
   document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=async()=>{const r=(await load()).find(x=>x.id===b.dataset.edit);if(r)startEdit(r)});
-  const c=$('#clr');if(c)c.onclick=async()=>{await save((await load()).filter(r=>!r.done));render()};
+  const mo=$('#more');if(mo)mo.onclick=async()=>{
+    if(!oldOpen){oldOpen=true;animOld=true}
+    else{await Promise.all([...document.querySelectorAll('.item.done.old')].map(leave));oldOpen=false}
+    lastH='';render()};
+  const c=$('#clr');if(c)c.onclick=()=>{confirmClr=true;lastH='';render().then(()=>{const x=$('.conf');if(x)x.scrollIntoView({block:'nearest',behavior:'smooth'})})};
+  const cn=$('#cno');if(cn)cn.onclick=()=>{confirmClr=false;lastH='';render()};
+  const cy=$('#cyes');if(cy)cy.onclick=async()=>{
+    const gone=(await load()).filter(r=>r.done);confirmClr=false;
+    if(!gone.length){lastH='';return render()}
+    await Promise.all([...document.querySelectorAll('.item.done,.conf')].map(leave));
+    gone.forEach(r=>seen.delete('d'+r.id));
+    await save((await load()).filter(r=>!r.done));
+    oldOpen=false;lastH='';render();showUndo(gone,'Usunięto historię')};
 }
 const fmtMin=m=>m<60?m+' min':(Math.floor(m/60)+' godz.'+(m%60?' '+(m%60)+' min':''));
 function preChips(){const v=$('#pre').value;document.querySelectorAll('[data-p]').forEach(b=>b.classList.toggle('on',v===b.dataset.p))}
