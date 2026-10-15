@@ -535,11 +535,10 @@ function icDay(ts,t0){
     if(!r.done&&r.days&&r.days.length){if(ts===a||(ts>=t0&&ts>=a&&r.days.includes(wd)))rep.push(r)}
     else if(a===ts)one.push(r)});
   return{one,rep}}
-// najdalszy miesiąc wstecz: najstarsze przypomnienie (przy wyborze daty tylko od bieżącego miesiąca)
+// przy wyborze daty nie cofamy się przed bieżący miesiąc; w zwykłym widoku można wstecz bez ograniczeń
 function icMin(){
-  const n=new Date();let m=n.getFullYear()*12+n.getMonth();
-  if(!icPick)calData.forEach(r=>{const d=new Date(r.at),k=d.getFullYear()*12+d.getMonth();if(k<m)m=k});
-  return m}
+  if(icPick){const n=new Date();return n.getFullYear()*12+n.getMonth()}
+  return -Infinity}
 function icCells(){
   const t0=day0(new Date()),lead=(new Date(icY,icM,1).getDay()+6)%7,dim=new Date(icY,icM+1,0).getDate(),arr=[];
   for(let d=1;d<=dim;d++){const ts=new Date(icY,icM,d).getTime();arr.push({d,ts,...icDay(ts,t0)})}
