@@ -160,6 +160,16 @@ html{scroll-behavior:smooth}
 .dli small{flex:none;display:flex;align-items:center;gap:4px;font-size:12px;color:var(--mute)}
 .dpe{margin:0 2px 4px;font-size:13.5px;color:var(--mute)}
 .dpan .dbtn{margin:10px 0 0}
+.cd.past:not(.on){color:var(--mute)}
+.dot.dn,.bd.dn{background:var(--mute)}
+.dli small.ok{color:var(--ok)}
+.dgo{flex:none;align-self:center;width:34px;height:34px;margin:-6px -6px -6px 0;padding:0;display:grid;place-items:center;border:0;border-radius:11px;background:var(--sky);color:var(--blue);cursor:pointer;touch-action:manipulation;transition:transform .1s}
+.dgo:active{transform:scale(.9)}
+.dgo svg{display:block}
+.item.flash{position:relative}
+.item.flash::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;--fc:47,123,255;animation:lflash 1.3s ease}
+.item.due.flash::after{--fc:255,255,255}
+@keyframes lflash{0%,100%{box-shadow:inset 0 0 0 0 rgba(var(--fc),0);background:rgba(var(--fc),0)}35%{box-shadow:inset 0 0 0 3px rgba(var(--fc),.9);background:rgba(var(--fc),.16)}}
 #date.flash{animation:dflash 1s ease .35s}
 @keyframes dflash{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}35%{box-shadow:0 0 0 5px rgba(255,255,255,.5)}}
 @media(prefers-reduced-motion:reduce){.chv,.dpan,#date.flash{animation:none;transition:none}}
@@ -301,7 +311,7 @@ body.lock{overflow:hidden}
     <div class="chead"><button type="button" class="cnav" id="icprev" aria-label="Poprzedni miesiąc"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><b id="icmon" aria-live="polite"></b><button type="button" class="cnav" id="icnext" aria-label="Następny miesiąc"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>
     <div class="cwd" aria-hidden="true"><span>Pn</span><span>Wt</span><span>Śr</span><span>Cz</span><span>Pt</span><span>Sb</span><span>Nd</span></div>
     <div class="cview" id="icview"><div class="cgrid" id="icgrid"></div></div>
-    <div class="leg" aria-hidden="true"><span><i class="dot"></i>jedno</span><span><em class="bd">2</em>kilka</span><span><i class="lgb"></i>powtarzane</span></div>
+    <div class="leg" aria-hidden="true"><span><i class="dot"></i>jedno</span><span><em class="bd">2</em>kilka</span><span><i class="lgb"></i>powtarzane</span><span><i class="dot dn"></i>zrobione</span></div>
     <div class="pnl off" id="icday" aria-hidden="true"><div class="in" id="icdayin"></div></div>
   </div></div></div>
 </section>
@@ -363,7 +373,8 @@ body.lock{overflow:hidden}
 </ul></section>
 <section class="card"><h3>Kalendarz</h3><ul>
 <li>Na samej górze rozwiniesz i schowasz kalendarz. <b>Kropka</b> przy dniu to jedno przypomnienie, <b>liczba</b> to kilka, a jasny <b>pasek</b> łączy dni powtarzanego przypomnienia, np. Pn–Pt.</li>
-<li>Dotknij dnia, żeby zobaczyć jego przypomnienia albo dodać nowe na ten dzień. Miesiące zmieniasz strzałkami albo przeciągnięciem palca w bok.</li>
+<li>Dotknij dnia, żeby zobaczyć jego przypomnienia albo dodać nowe na ten dzień. Miesiące zmieniasz strzałkami albo przeciągnięciem palca w bok, także wstecz: szare kropki to zrobione przypomnienia z przeszłości.</li>
+<li>Strzałka w dół przy przypomnieniu pod kalendarzem przewija na dół, do tego przypomnienia na liście, i na chwilę je podświetla.</li>
 </ul></section>
 <section class="card"><h3>Przypomnij wcześniej</h3><p>Możesz dostać dodatkowe, krótkie powiadomienie od kilku minut do tygodnia przed terminem. Nie ma przycisku i nie wraca. Dotknięcie otwiera aplikację.</p></section>
 <section class="card"><h3>Gdy nadejdzie czas</h3><ul>
@@ -515,14 +526,20 @@ function startEdit(r){
 // --- kalendarz na górze ---
 const MN=['styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'];
 const RM=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+const dnIco='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>';
 let icY=0,icM=0,icSel=null,icOpen=false,icPick=false,icBusy=false,icSw=false,icHtml='',icPan='',calData=[];
 // przypomnienia danego dnia: jednorazowe i powtarzane (powtarzane od najbliższego terminu w przód)
 function icDay(ts,t0){
   const wd=new Date(ts).getDay(),one=[],rep=[];
   calData.forEach(r=>{const a=day0(new Date(r.at));
-    if(r.days&&r.days.length){if(ts===a||(ts>=t0&&ts>=a&&r.days.includes(wd)))rep.push(r)}
+    if(!r.done&&r.days&&r.days.length){if(ts===a||(ts>=t0&&ts>=a&&r.days.includes(wd)))rep.push(r)}
     else if(a===ts)one.push(r)});
   return{one,rep}}
+// najdalszy miesiąc wstecz: najstarsze przypomnienie (przy wyborze daty tylko od bieżącego miesiąca)
+function icMin(){
+  const n=new Date();let m=n.getFullYear()*12+n.getMonth();
+  if(!icPick)calData.forEach(r=>{const d=new Date(r.at),k=d.getFullYear()*12+d.getMonth();if(k<m)m=k});
+  return m}
 function icCells(){
   const t0=day0(new Date()),lead=(new Date(icY,icM,1).getDay()+6)%7,dim=new Date(icY,icM+1,0).getDate(),arr=[];
   for(let d=1;d<=dim;d++){const ts=new Date(icY,icM,d).getTime();arr.push({d,ts,...icDay(ts,t0)})}
@@ -531,10 +548,11 @@ function icCells(){
     const col=(lead+i)%7,n=x.one.length+x.rep.length,past=x.ts<t0;
     const sh=o=>!!o&&x.rep.some(r=>o.rep.includes(r));
     const L=col>0&&sh(arr[i-1]),R=col<6&&sh(arr[i+1]);
-    const dis=icPick?past:(past&&!n),on=x.ts===icSel;
-    const mk=n>1?`<em class="bd">${n}</em>`:(x.one.length?'<i class="dot"></i>':'');
+    const dis=icPick&&past,on=x.ts===icSel;
+    const dn=n>0&&!x.rep.length&&x.one.every(r=>r.done),dc=dn?' dn':'';
+    const mk=n>1?`<em class="bd${dc}">${n}</em>`:(x.one.length?`<i class="dot${dc}"></i>`:'');
     const lbl=new Date(x.ts).toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'})+(n?`, przypomnień: ${n}`:'');
-    h+=`<div class="cc${x.rep.length?' rep':''}${L?' l':''}${R?' r':''}"><button type="button" class="cd${x.ts===t0?' today':''}${on?' on':''}" style="--i:${lead+i}" data-ts="${x.ts}"${dis?' disabled':''} aria-label="${lbl}">${x.d}${mk}</button></div>`});
+    h+=`<div class="cc${x.rep.length?' rep':''}${L?' l':''}${R?' r':''}"><button type="button" class="cd${x.ts===t0?' today':''}${past?' past':''}${on?' on':''}" style="--i:${lead+i}" data-ts="${x.ts}"${dis?' disabled':''} aria-label="${lbl}">${x.d}${mk}</button></div>`});
   for(let i=lead+dim;i<42;i++)h+='<i class="cc"></i>';
   return h}
 function icPanel(){
@@ -542,7 +560,7 @@ function icPanel(){
   const all=[...x.one,...x.rep].sort((a,b)=>tm(a)-tm(b)),
     ttl=new Date(icSel).toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'});
   let h=`<div class="dpan"><div class="dph">${ttl}</div>`;
-  h+=all.length?all.map(r=>`<div class="dli"><b>${tstr(new Date(r.at))}</b><span>${nb(esc(r.text))}</span>${r.days?`<small>${repSm}${repLabel(r.days)}</small>`:''}</div>`).join('')
+  h+=all.length?all.map(r=>`<div class="dli"><b>${tstr(new Date(r.at))}</b><span>${nb(esc(r.text))}</span>${r.done?'<small class="ok">Zrobione</small>':r.days?`<small>${repSm}${repLabel(r.days)}</small>`:''}<button type="button" class="dgo" data-go="${r.id}" aria-label="Pokaż na liście poniżej">${dnIco}</button></div>`).join('')
     :'<p class="dpe">Brak przypomnień tego dnia.</p>';
   if(icSel>=t0)h+='<button type="button" class="dbtn pri" data-iadd>Dodaj na ten dzień</button>';
   return h+'</div>'}
@@ -553,12 +571,13 @@ function icPanelHide(){const d=$('#icday');d.classList.add('off');d.setAttribute
 // odświeża znaczniki, gdy zmieniły się przypomnienia (bez animacji i bez migania)
 function icRefresh(){
   if(!icOpen)return;
+  $('#icprev').disabled=icY*12+icM<=icMin();
   const h=icCells();if(h!==icHtml){icHtml=h;const g=$('#icgrid');g.classList.remove('pop');g.innerHTML=h}
   if(!icPick&&icSel!==null){const p=icPanel();if(p!==icPan){icPan=p;$('#icdayin').innerHTML=p}}}
 // dir: 0 = bez przesunięcia, 1 / -1 = kierunek zmiany miesiąca; pop = dni wskakują po kolei
 function icDraw(dir,pop){
   const now=new Date(),g=$('#icgrid'),cv=$('#icview'),mon=$('#icmon'),txt=MN[icM]+' '+icY;
-  $('#icprev').disabled=icY*12+icM<=now.getFullYear()*12+now.getMonth();
+  $('#icprev').disabled=icY*12+icM<=icMin();
   const h=icCells();
   if(dir&&!RM){
     const oh=cv.offsetHeight,ghost=g.cloneNode(true);
@@ -627,7 +646,25 @@ $('#icprev').onclick=()=>icStep(-1);$('#icnext').onclick=()=>icStep(1);
 $('#icgrid').addEventListener('click',e=>{
   if(icSw)return;const b=e.target.closest('.cd');if(!b||b.disabled)return;
   icPick?icPickCell(b):icSelect(b)});
-$('#icday').addEventListener('click',e=>{if(e.target.closest('[data-iadd]'))icAddDay()});
+$('#icday').addEventListener('click',e=>{
+  if(e.target.closest('[data-iadd]'))return icAddDay();
+  const g=e.target.closest('[data-go]');if(g)goList(g.dataset.go)});
+// strzałka przy przypomnieniu dnia: przewiń do niego na liście poniżej i podświetl je raz
+const listItem=id=>[...document.querySelectorAll('#list .item[data-id]')].find(x=>x.dataset.id===id);
+function afterScroll(cb){
+  let last=-1,same=0,fin=false;
+  const end=()=>{if(fin)return;fin=true;clearInterval(t);cb()},
+    t=setInterval(()=>{const y=scrollY;same=Math.abs(y-last)<1?same+1:0;last=y;if(same>=3)end()},70);
+  setTimeout(end,1600)}
+async function goList(id){
+  let el=listItem(id);
+  if(!el&&!oldOpen){oldOpen=true;lastH='';await render();el=listItem(id)}
+  if(!el)return toast('Nie znaleziono tego przypomnienia na liście');
+  const r=el.getBoundingClientRect();
+  scrollTo({top:Math.max(0,scrollY+r.top+r.height/2-innerHeight/2),behavior:RM?'auto':'smooth'});
+  afterScroll(()=>{const e=listItem(id);if(!e)return;
+    e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash');
+    setTimeout(()=>e.classList.remove('flash'),1400)})}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&icOpen&&icPick)icReturn()});
 // przeciągnięcie palcem w bok zmienia miesiąc
 (()=>{let sx=null,sy=0;const cv=$('#icview');
@@ -684,7 +721,7 @@ function leave(el){return new Promise(res=>{if(!el)return res();leaving=true;
   setTimeout(()=>{leaving=false;res()},330)})}
 async function render(){
   if(leaving)return;
-  const l=(await load()).sort((a,b)=>a.at-b.at),now=Date.now();bkList=l;calData=l.filter(r=>!r.done);icRefresh();
+  const l=(await load()).sort((a,b)=>a.at-b.at),now=Date.now();bkList=l;calData=l;icRefresh();
   const act=l.filter(r=>!r.done),dn=l.filter(r=>r.done).sort((a,b)=>b.doneAt-a.doneAt);
   let h='<h2>Zaplanowane</h2>';
   h+=act.length?act.map(r=>{const due=r.at<=now,d=new Date(r.at),ph=now%2000;
@@ -692,7 +729,7 @@ async function render(){
     return `<div class="item ${due?'due':''}${en?' enter':''}" data-id="${r.id}"${due?` style="--gd:-${ph}ms"`:''}><div class="when"><b>${tstr(d)}</b><small>${dayLabel(r.at)}</small></div><div class="body"><b>${nb(esc(r.text))}</b>${due?'<small>Wróci, dopóki nie klikniesz Zrobione</small>':'<small>'+rel(r.at)+'</small>'}${r.days?'<small>'+repSm+repLabel(r.days)+'</small>':''}${r.pre?'<small>'+bellSm+fmtMin(r.pre)+' wcześniej</small>':''}</div><div class="acts">${due?`<button class="del" data-done="${r.id}">Zrobione</button>`:`<button class="del" data-del="${r.id}">Usuń</button>`}${due?'':`<button class="del" data-edit="${r.id}">Edytuj</button>`}</div></div>`}).join('')
   :`<div class="empty">${bell}Nic nie czeka. Dodaj pierwsze przypomnienie.</div>`;
   const older=dn.slice(HIST);if(!older.length)oldOpen=false;if(!dn.length)confirmClr=false;
-  const drow=(r,old)=>{const k='d'+r.id,en=seenInit&&(!seen.has(k)||(old&&animOld));seen.add(k);return `<div class="item done${old?' old':''}${en?' enter':''}"><div class="when"><b>${tstr(new Date(r.at))}</b></div><div class="body"><b>${nb(esc(r.text))}</b><small>Zrobione ${tstr(new Date(r.doneAt))}</small></div><div class="acts"><button type="button" class="del rpt" data-rpt="${r.id}" aria-label="Powtórz przypomnienie">${rptIco}</button></div></div>`};
+  const drow=(r,old)=>{const k='d'+r.id,en=seenInit&&(!seen.has(k)||(old&&animOld));seen.add(k);return `<div class="item done${old?' old':''}${en?' enter':''}" data-id="${r.id}"><div class="when"><b>${tstr(new Date(r.at))}</b></div><div class="body"><b>${nb(esc(r.text))}</b><small>Zrobione ${tstr(new Date(r.doneAt))}</small></div><div class="acts"><button type="button" class="del rpt" data-rpt="${r.id}" aria-label="Powtórz przypomnienie">${rptIco}</button></div></div>`};
   if(dn.length)h+='<h2>Zrobione</h2>'+dn.slice(0,HIST).map(r=>drow(r,false)).join('')+(oldOpen?older.map(r=>drow(r,true)).join(''):'')
     +(confirmClr?CONF:older.length?`<div class="hrow"><button class="clr" id="more" aria-expanded="${oldOpen}">${oldOpen?'Ukryj starsze':'Pokaż starsze ('+older.length+')'}</button><button class="clr" id="clr">Wyczyść historię</button></div>`:'<button class="clr" id="clr">Wyczyść historię</button>');
   seenInit=true;animOld=false;
