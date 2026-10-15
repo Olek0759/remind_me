@@ -121,9 +121,48 @@ html{scroll-behavior:smooth}
 .cd.today{border-color:var(--bright)}
 .cd.on{background:var(--blue);border-color:var(--blue);color:#fff}
 .cd:disabled{opacity:.3;cursor:default}
-.cfoot{display:flex;gap:8px;margin-top:12px}
-.cfoot .dbtn{flex:1;margin:0}
 @media(prefers-reduced-motion:reduce){.cgrid.pop .cd,.cd.sel{animation:none}}
+
+/* kalendarz na górze */
+.calc{padding:6px}
+.calt{display:flex;align-items:center;gap:12px;width:100%;font:inherit;color:var(--ink);background:transparent;border:0;border-radius:18px;padding:8px 12px 8px 8px;cursor:pointer;text-align:left;touch-action:manipulation;transition:background .15s}
+.calt:active{background:var(--sky)}
+.calic{flex:none;width:40px;height:40px;border-radius:13px;background:var(--sky);color:var(--blue);display:grid;place-items:center}
+.calic svg{display:block}
+.calt b{flex:1;font-size:16px;font-weight:700;letter-spacing:-.2px}
+.chv{flex:none;color:var(--mute);transition:transform .35s cubic-bezier(.4,0,.2,1)}
+.calt[aria-expanded="true"] .chv{transform:rotate(180deg)}
+.calbody{padding:8px 10px 10px;text-align:center}
+.pickb{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--blue);color:#fff;border-radius:14px;padding:9px 9px 9px 14px;margin-bottom:12px;font-size:14px;font-weight:600;text-align:left}
+.pickb button{flex:none;font:inherit;font-size:13px;font-weight:700;color:var(--blue);background:#fff;border:0;border-radius:999px;padding:8px 14px;cursor:pointer}
+.pickb button:active{transform:scale(.96)}
+.ical .cwd,.ical .cgrid{column-gap:0;row-gap:0}
+.cc{display:block;position:relative;min-width:0;padding:2px 0}
+.cc.rep{background:var(--sky);border-radius:999px}
+.cc.rep.l{border-top-left-radius:0;border-bottom-left-radius:0}
+.cc.rep.r{border-top-right-radius:0;border-bottom-right-radius:0}
+.ical .cd{display:block;position:relative;width:100%}
+.dot{position:absolute;left:50%;bottom:7px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--bright);pointer-events:none}
+.cd.on .dot{background:#fff}
+.bd{position:absolute;top:-1px;right:-1px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--blue);color:#fff;font:700 10.5px/17px Sora,"Segoe UI",system-ui,sans-serif;font-style:normal;text-align:center;pointer-events:none}
+.cd.on .bd{background:#fff;color:var(--blue)}
+.leg{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin-top:10px;font-size:12px;color:var(--mute)}
+.leg span{display:inline-flex;align-items:center;gap:6px}
+.leg .dot,.leg .bd{position:static;margin:0;flex:none}
+.leg .dot{width:7px;height:7px}
+.lgb{flex:none;width:22px;height:10px;border-radius:5px;background:var(--sky)}
+.dpan{margin-top:12px;padding-top:14px;border-top:1px solid var(--line);text-align:left;animation:fadeup .3s ease both}
+.dph{margin:0 2px 10px;font-size:14px;font-weight:700}
+.dph::first-letter{text-transform:uppercase}
+.dli{display:flex;align-items:baseline;gap:10px;background:var(--bg);border-radius:12px;padding:9px 12px;margin-bottom:6px;font-size:14px}
+.dli b{flex:none;min-width:44px;font-weight:700;color:var(--blue)}
+.dli span{flex:1;min-width:0;word-break:break-word}
+.dli small{flex:none;display:flex;align-items:center;gap:4px;font-size:12px;color:var(--mute)}
+.dpe{margin:0 2px 4px;font-size:13.5px;color:var(--mute)}
+.dpan .dbtn{margin:10px 0 0}
+#date.flash{animation:dflash 1s ease .35s}
+@keyframes dflash{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}35%{box-shadow:0 0 0 5px rgba(255,255,255,.5)}}
+@media(prefers-reduced-motion:reduce){.chv,.dpan,#date.flash{animation:none;transition:none}}
 .item.done .acts{flex:none}
 .rpt{display:grid;place-items:center;width:36px;height:36px;padding:0;border-radius:12px}
 .rpt svg{display:block}
@@ -213,6 +252,7 @@ body.lock{overflow:hidden}
 .about.show .ab>:nth-child(6){animation-delay:.16s}
 .about.show .ab>:nth-child(7){animation-delay:.2s}
 .about.show .ab>:nth-child(8){animation-delay:.24s}
+.about.show .ab>:nth-child(9){animation-delay:.28s}
 @media(prefers-reduced-motion:reduce){.about,.about.show{transition:none}.about.show .abh,.about.show .card{animation:none}}
 .ft button{font:inherit;color:var(--mute);opacity:.35;background:none;border:0;padding:10px 12px;cursor:pointer}
 .ft button:active{opacity:.8}
@@ -249,6 +289,22 @@ body.lock{overflow:hidden}
 <main>
 <div class="top"><div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 003.4 0"/></svg></div><div><h1>Remind me</h1><p class="greet" id="greet"></p></div></div>
 <div id="perm"></div>
+
+<section class="card calc" id="calcard">
+  <button type="button" class="calt" id="calt" aria-expanded="false" aria-controls="calp">
+    <span class="calic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01"/></svg></span>
+    <b>Kalendarz</b>
+    <svg class="chv" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </button>
+  <div id="calp" class="pnl off" aria-hidden="true"><div class="in"><div class="calbody ical">
+    <div class="pnl off" id="pickb" aria-hidden="true"><div class="in"><div class="pickb"><span>Wybierz datę przypomnienia</span><button type="button" id="pickx">Anuluj</button></div></div></div>
+    <div class="chead"><button type="button" class="cnav" id="icprev" aria-label="Poprzedni miesiąc"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><b id="icmon" aria-live="polite"></b><button type="button" class="cnav" id="icnext" aria-label="Następny miesiąc"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>
+    <div class="cwd" aria-hidden="true"><span>Pn</span><span>Wt</span><span>Śr</span><span>Cz</span><span>Pt</span><span>Sb</span><span>Nd</span></div>
+    <div class="cview" id="icview"><div class="cgrid" id="icgrid"></div></div>
+    <div class="leg" aria-hidden="true"><span><i class="dot"></i>jedno</span><span><em class="bd">2</em>kilka</span><span><i class="lgb"></i>powtarzane</span></div>
+    <div class="pnl off" id="icday" aria-hidden="true"><div class="in" id="icdayin"></div></div>
+  </div></div></div>
+</section>
 
 <div class="card">
   <label for="what">Co ci przypomnieć?</label>
@@ -302,8 +358,12 @@ body.lock{overflow:hidden}
 <section class="abh"><svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 003.4 0"/></svg><b>Remind me</b><p>Przypomnienia, które wracają, dopóki ich nie odhaczysz.</p></section>
 <section class="card"><h3>Jak dodać przypomnienie</h3><ul>
 <li>Wpisz, co ci przypomnieć, i ustaw godzinę: wpisz ją z palca (np. 1430) albo użyj plusów i minusów przy godzinie i minutach. Przytrzymanie przewija szybciej. Szybkie przyciski ustawiają godzinę za 15 minut, za godzinę albo za 3 godziny.</li>
-<li><b>Jednorazowo:</b> wybierz Dziś, Jutro, wpisz datę albo dotknij ikony kalendarza obok pola. Ponowne dotknięcie Dziś lub Jutro odznacza je.</li>
+<li><b>Jednorazowo:</b> wybierz Dziś, Jutro, wpisz datę albo dotknij ikony kalendarza obok pola: aplikacja przewinie się na górę, rozwinie kalendarz i wystarczy dotknąć dnia. Ponowne dotknięcie Dziś lub Jutro odznacza je.</li>
 <li><b>Powtarzaj:</b> zaznacz Codziennie albo wybrane dni tygodnia.</li>
+</ul></section>
+<section class="card"><h3>Kalendarz</h3><ul>
+<li>Na samej górze rozwiniesz i schowasz kalendarz. <b>Kropka</b> przy dniu to jedno przypomnienie, <b>liczba</b> to kilka, a jasny <b>pasek</b> łączy dni powtarzanego przypomnienia, np. Pn–Pt.</li>
+<li>Dotknij dnia, żeby zobaczyć jego przypomnienia albo dodać nowe na ten dzień. Miesiące zmieniasz strzałkami albo przeciągnięciem palca w bok.</li>
 </ul></section>
 <section class="card"><h3>Przypomnij wcześniej</h3><p>Możesz dostać dodatkowe, krótkie powiadomienie od kilku minut do tygodnia przed terminem. Nie ma przycisku i nie wraca. Dotknięcie otwiera aplikację.</p></section>
 <section class="card"><h3>Gdy nadejdzie czas</h3><ul>
@@ -324,12 +384,6 @@ body.lock{overflow:hidden}
 <button type="button" class="dbtn pri" id="rd1">Tak, w najbliższym terminie</button>
 <button type="button" class="dbtn" id="rd2">Tak, ale ze zmianami</button>
 <button type="button" class="dbtn ghost" id="rd3">Anuluj</button>
-</div></div>
-<div class="dlg" id="cdlg" role="dialog" aria-modal="true" aria-label="Wybierz datę" aria-hidden="true"><div class="dbox">
-<div class="chead"><button type="button" class="cnav" id="cprev" aria-label="Poprzedni miesiąc"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><b id="cmon" aria-live="polite"></b><button type="button" class="cnav" id="cnext" aria-label="Następny miesiąc"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>
-<div class="cwd" aria-hidden="true"><span>Pn</span><span>Wt</span><span>Śr</span><span>Cz</span><span>Pt</span><span>Sb</span><span>Nd</span></div>
-<div class="cview" id="cview"><div class="cgrid" id="cgrid"></div></div>
-<div class="cfoot"><button type="button" class="dbtn" id="ctoday">Dziś</button><button type="button" class="dbtn ghost" id="cclose">Anuluj</button></div>
 </div></div>
 <div class="toast" id="toast"></div>
 <div class="undo" id="undo" role="status" aria-live="polite"><div class="u-row"><span id="undoMsg">Usunięto przypomnienie</span><button type="button" id="undoBtn">Cofnij</button></div><i class="u-bar" id="undoBar"></i></div>
@@ -458,61 +512,128 @@ function startEdit(r){
   addLabel();$('#cancel').classList.add('show');$('#cancel').tabIndex=0;$('#err').textContent='';
   window.scrollTo({top:0,behavior:'smooth'});
 }
-// --- kalendarz ---
+// --- kalendarz na górze ---
 const MN=['styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'];
-let calY=0,calM=0,calSel=null,calPick=false,swiped=false;
 const RM=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
-function calHtml(){
-  const t0=day0(new Date()),lead=(new Date(calY,calM,1).getDay()+6)%7,dim=new Date(calY,calM+1,0).getDate();
-  let h='';for(let i=0;i<lead;i++)h+='<i></i>';
-  for(let d=1;d<=dim;d++){const dt=new Date(calY,calM,d),ts=dt.getTime();
-    h+=`<button type="button" class="cd${ts===t0?' today':''}${ts===calSel?' on':''}" style="--i:${lead+d-1}" data-ts="${ts}"${ts<t0?' disabled':''} aria-label="${dt.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'})}">${d}</button>`}
-  for(let i=lead+dim;i<42;i++)h+='<i></i>';
+let icY=0,icM=0,icSel=null,icOpen=false,icPick=false,icBusy=false,icSw=false,icHtml='',icPan='',calData=[];
+// przypomnienia danego dnia: jednorazowe i powtarzane (powtarzane od najbliższego terminu w przód)
+function icDay(ts,t0){
+  const wd=new Date(ts).getDay(),one=[],rep=[];
+  calData.forEach(r=>{const a=day0(new Date(r.at));
+    if(r.days&&r.days.length){if(ts===a||(ts>=t0&&ts>=a&&r.days.includes(wd)))rep.push(r)}
+    else if(a===ts)one.push(r)});
+  return{one,rep}}
+function icCells(){
+  const t0=day0(new Date()),lead=(new Date(icY,icM,1).getDay()+6)%7,dim=new Date(icY,icM+1,0).getDate(),arr=[];
+  for(let d=1;d<=dim;d++){const ts=new Date(icY,icM,d).getTime();arr.push({d,ts,...icDay(ts,t0)})}
+  let h='';for(let i=0;i<lead;i++)h+='<i class="cc"></i>';
+  arr.forEach((x,i)=>{
+    const col=(lead+i)%7,n=x.one.length+x.rep.length,past=x.ts<t0;
+    const sh=o=>!!o&&x.rep.some(r=>o.rep.includes(r));
+    const L=col>0&&sh(arr[i-1]),R=col<6&&sh(arr[i+1]);
+    const dis=icPick?past:(past&&!n),on=x.ts===icSel;
+    const mk=n>1?`<em class="bd">${n}</em>`:(x.one.length?'<i class="dot"></i>':'');
+    const lbl=new Date(x.ts).toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'})+(n?`, przypomnień: ${n}`:'');
+    h+=`<div class="cc${x.rep.length?' rep':''}${L?' l':''}${R?' r':''}"><button type="button" class="cd${x.ts===t0?' today':''}${on?' on':''}" style="--i:${lead+i}" data-ts="${x.ts}"${dis?' disabled':''} aria-label="${lbl}">${x.d}${mk}</button></div>`});
+  for(let i=lead+dim;i<42;i++)h+='<i class="cc"></i>';
   return h}
+function icPanel(){
+  const t0=day0(new Date()),x=icDay(icSel,t0),tm=r=>{const d=new Date(r.at);return d.getHours()*60+d.getMinutes()};
+  const all=[...x.one,...x.rep].sort((a,b)=>tm(a)-tm(b)),
+    ttl=new Date(icSel).toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'});
+  let h=`<div class="dpan"><div class="dph">${ttl}</div>`;
+  h+=all.length?all.map(r=>`<div class="dli"><b>${tstr(new Date(r.at))}</b><span>${nb(esc(r.text))}</span>${r.days?`<small>${repSm}${repLabel(r.days)}</small>`:''}</div>`).join('')
+    :'<p class="dpe">Brak przypomnień tego dnia.</p>';
+  if(icSel>=t0)h+='<button type="button" class="dbtn pri" data-iadd>Dodaj na ten dzień</button>';
+  return h+'</div>'}
+function icPanelShow(){
+  const h=icPanel(),d=$('#icday');icPan=h;$('#icdayin').innerHTML=h;
+  d.classList.remove('off');d.setAttribute('aria-hidden','false')}
+function icPanelHide(){const d=$('#icday');d.classList.add('off');d.setAttribute('aria-hidden','true')}
+// odświeża znaczniki, gdy zmieniły się przypomnienia (bez animacji i bez migania)
+function icRefresh(){
+  if(!icOpen)return;
+  const h=icCells();if(h!==icHtml){icHtml=h;const g=$('#icgrid');g.classList.remove('pop');g.innerHTML=h}
+  if(!icPick&&icSel!==null){const p=icPanel();if(p!==icPan){icPan=p;$('#icdayin').innerHTML=p}}}
 // dir: 0 = bez przesunięcia, 1 / -1 = kierunek zmiany miesiąca; pop = dni wskakują po kolei
-function drawCal(dir,pop){
-  const now=new Date(),g=$('#cgrid'),mon=$('#cmon'),txt=MN[calM]+' '+calY;
-  $('#cprev').disabled=calY*12+calM<=now.getFullYear()*12+now.getMonth();
+function icDraw(dir,pop){
+  const now=new Date(),g=$('#icgrid'),cv=$('#icview'),mon=$('#icmon'),txt=MN[icM]+' '+icY;
+  $('#icprev').disabled=icY*12+icM<=now.getFullYear()*12+now.getMonth();
+  const h=icCells();
   if(dir&&!RM){
-    const ghost=g.cloneNode(true);ghost.removeAttribute('id');ghost.classList.remove('pop');ghost.classList.add('ghost');ghost.setAttribute('aria-hidden','true');
-    g.parentNode.appendChild(ghost);
-    g.classList.remove('pop');g.innerHTML=calHtml();
-    const ease='cubic-bezier(.2,.8,.25,1)';
+    const oh=cv.offsetHeight,ghost=g.cloneNode(true);
+    ghost.removeAttribute('id');ghost.classList.remove('pop');ghost.classList.add('ghost');ghost.setAttribute('aria-hidden','true');
+    cv.appendChild(ghost);
+    g.classList.remove('pop');g.innerHTML=h;icHtml=h;
+    const nh=cv.offsetHeight,ease='cubic-bezier(.2,.8,.25,1)';
     ghost.animate([{transform:'none',opacity:1},{transform:`translateX(${-dir*36}px)`,opacity:0}],{duration:300,easing:ease,fill:'forwards'}).onfinish=()=>ghost.remove();
     g.animate([{transform:`translateX(${dir*36}px)`,opacity:0},{transform:'none',opacity:1}],{duration:340,easing:ease});
     mon.textContent=txt;
     mon.animate([{transform:`translateX(${dir*16}px)`,opacity:0},{transform:'none',opacity:1}],{duration:280,easing:ease});
+    if(oh!==nh)cv.animate([{height:oh+'px'},{height:nh+'px'}],{duration:300,easing:ease})
   }else{
-    mon.textContent=txt;g.innerHTML=calHtml();g.classList.toggle('pop',!!pop&&!RM)}}
-function openCal(){
-  const p=parseDate($('#date').value.trim()),b=p||new Date();
-  calSel=p?day0(p):null;calY=b.getFullYear();calM=b.getMonth();calPick=false;
-  drawCal(0,true);
-  const d=$('#cdlg');d.classList.add('show');d.setAttribute('aria-hidden','false');
-  setTimeout(()=>{const f=$('#cgrid .on')||$('#cgrid .today')||$('#cgrid .cd:not(:disabled)');if(f)f.focus({preventScroll:true})},60)}
-function closeCal(){const d=$('#cdlg');d.classList.remove('show');d.setAttribute('aria-hidden','true')}
-function pickDate(ts){$('#date').value=dstr(new Date(ts));chips();$('#err').textContent='';closeCal()}
-// krótka animacja zaznaczenia, potem wybór i zamknięcie
-function pickCell(b){
-  if(calPick)return;calPick=true;
-  const o=$('#cgrid .cd.on');if(o)o.classList.remove('on');
+    mon.textContent=txt;g.innerHTML=h;icHtml=h;g.classList.toggle('pop',!!pop&&!RM)}}
+function icShow(on){
+  icOpen=on;const p=$('#calp');p.classList.toggle('off',!on);p.setAttribute('aria-hidden',!on);
+  $('#calt').setAttribute('aria-expanded',on)}
+function icPickUI(on){icPick=on;const b=$('#pickb');b.classList.toggle('off',!on);b.setAttribute('aria-hidden',!on)}
+function icClose(){icShow(false);icPick=false;icSel=null}
+function flashDate(){const d=$('#date');d.classList.remove('flash');void d.offsetWidth;d.classList.add('flash')}
+// zwija kalendarz i płynnie wraca do pola daty, w którym użytkownik był
+function icReturn(){
+  const t=document.querySelector('.dwrap'),H=$('#calp').offsetHeight,
+    y=t.getBoundingClientRect().top+window.scrollY-H-(window.innerHeight-t.offsetHeight)*.4;
+  icClose();window.scrollTo({top:Math.max(0,y),behavior:RM?'auto':'smooth'})}
+function icPicked(ts){
+  $('#date').value=dstr(new Date(ts));chips();$('#err').textContent='';
+  icReturn();flashDate()}
+function icPickCell(b){
+  if(icBusy)return;icBusy=true;
+  const o=$('#icgrid .cd.on');if(o)o.classList.remove('on','sel');
   b.classList.add('on','sel');
-  setTimeout(()=>{calPick=false;pickDate(+b.dataset.ts)},RM?0:240)}
-function calStep(n){
-  if(n<0&&$('#cprev').disabled)return;
-  const d=new Date(calY,calM+n,1);calY=d.getFullYear();calM=d.getMonth();drawCal(n)}
-$('#calbtn').onclick=()=>{if(document.activeElement)document.activeElement.blur();openCal()};
-$('#cprev').onclick=()=>calStep(-1);$('#cnext').onclick=()=>calStep(1);
-$('#cgrid').addEventListener('click',e=>{if(swiped)return;const b=e.target.closest('.cd');if(b&&!b.disabled)pickCell(b)});
-$('#ctoday').onclick=()=>{const b=$('#cgrid .cd.today');b?pickCell(b):pickDate(day0(new Date()))};
-$('#cclose').onclick=closeCal;
-$('#cdlg').addEventListener('click',e=>{if(e.target===e.currentTarget)closeCal()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCal()});
+  setTimeout(()=>{icBusy=false;icPicked(+b.dataset.ts)},RM?0:240)}
+// zwykły tryb: dotknięcie dnia pokazuje jego przypomnienia i przycisk dodawania
+function icSelect(b){
+  const ts=+b.dataset.ts,same=icSel===ts,o=$('#icgrid .cd.on');
+  if(o)o.classList.remove('on','sel');
+  if(same){icSel=null;icHtml=icCells();icPanelHide();return}
+  icSel=ts;b.classList.add('on','sel');icHtml=icCells();icPanelShow();
+  setTimeout(()=>$('#icday').scrollIntoView({block:'nearest',behavior:RM?'auto':'smooth'}),RM?0:360)}
+function icAddDay(){
+  const ts=icSel;if(ts===null||ts<day0(new Date()))return;
+  if(editId)resetForm();
+  setMode('once');$('#date').value=dstr(new Date(ts));chips();$('#err').textContent='';
+  icClose();window.scrollTo({top:0,behavior:RM?'auto':'smooth'});
+  toast(`Dodajesz na: ${dayLabel(ts).toLowerCase()}. Wpisz, co przypomnieć.`)}
+function icStep(n){
+  if(n<0&&$('#icprev').disabled)return;
+  const d=new Date(icY,icM+n,1);icY=d.getFullYear();icM=d.getMonth();
+  if(!icPick&&icSel!==null){icSel=null;icPanelHide()}
+  icDraw(n)}
+// rozwijanie / chowanie z paska
+$('#calt').onclick=()=>{
+  if(icOpen){icClose();return}
+  const n=new Date();icY=n.getFullYear();icM=n.getMonth();icSel=null;
+  icPickUI(false);icPanelHide();icDraw(0,true);icShow(true)};
+// ikona kalendarza przy dacie: na górę, rozwiń i wybierz dzień
+$('#calbtn').onclick=()=>{
+  if(document.activeElement)document.activeElement.blur();
+  const p=parseDate($('#date').value.trim()),b=p||new Date(),was=icOpen;
+  icY=b.getFullYear();icM=b.getMonth();icSel=p?day0(p):null;
+  icPickUI(true);icPanelHide();icDraw(0,!was);icShow(true);
+  window.scrollTo({top:0,behavior:RM?'auto':'smooth'})};
+$('#pickx').onclick=()=>icReturn();
+$('#icprev').onclick=()=>icStep(-1);$('#icnext').onclick=()=>icStep(1);
+$('#icgrid').addEventListener('click',e=>{
+  if(icSw)return;const b=e.target.closest('.cd');if(!b||b.disabled)return;
+  icPick?icPickCell(b):icSelect(b)});
+$('#icday').addEventListener('click',e=>{if(e.target.closest('[data-iadd]'))icAddDay()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&icOpen&&icPick)icReturn()});
 // przeciągnięcie palcem w bok zmienia miesiąc
-(()=>{let sx=null,sy=0;const cv=$('#cview');
+(()=>{let sx=null,sy=0;const cv=$('#icview');
   cv.addEventListener('pointerdown',e=>{sx=e.clientX;sy=e.clientY});
   cv.addEventListener('pointerup',e=>{if(sx===null)return;const dx=e.clientX-sx,dy=e.clientY-sy;sx=null;
-    if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.5){swiped=true;setTimeout(()=>{swiped=false},60);calStep(dx<0?1:-1)}});
+    if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.5){icSw=true;setTimeout(()=>{icSw=false},60);icStep(dx<0?1:-1)}});
   cv.addEventListener('pointercancel',()=>{sx=null})})();
 // --- powtórz z historii ---
 let rptItem=null;
@@ -563,7 +684,7 @@ function leave(el){return new Promise(res=>{if(!el)return res();leaving=true;
   setTimeout(()=>{leaving=false;res()},330)})}
 async function render(){
   if(leaving)return;
-  const l=(await load()).sort((a,b)=>a.at-b.at),now=Date.now();bkList=l;
+  const l=(await load()).sort((a,b)=>a.at-b.at),now=Date.now();bkList=l;calData=l.filter(r=>!r.done);icRefresh();
   const act=l.filter(r=>!r.done),dn=l.filter(r=>r.done).sort((a,b)=>b.doneAt-a.doneAt);
   let h='<h2>Zaplanowane</h2>';
   h+=act.length?act.map(r=>{const due=r.at<=now,d=new Date(r.at),ph=now%2000;
